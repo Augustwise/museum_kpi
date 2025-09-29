@@ -27,3 +27,173 @@ src/
 ├── scripts/
 └── styles/
 ```
+
+
+## Backend (MongoDB, Express, Mongoose, bcrypt)
+
+This project now includes a Node.js backend to persist users and expos to MongoDB Atlas.
+
+### 1) Setup
+
+- Install deps:
+  - Client dev deps (already used): vite, sass
+  - Server deps: express, mongoose, bcrypt, dotenv, cors, nodemon
+- Scripts:
+  - Run backend: `npm run dev:server`
+  - Run frontend: `npm run dev` (Vite)
+
+### 2) Environment variables
+
+Create or update `.env` in the project root:
+
+```
+MONGODB_URI="mongodb+srv://&lt;db_username&gt;:&lt;db_password&gt;@cluster0.r8xdpjy.mongodb.net/?retryWrites=true&amp;w=majority&amp;appName=Cluster0"
+DB_NAME="museum"
+PORT="3000"
+CORS_ORIGIN="http://localhost:5173"
+```
+
+Notes:
+- Use SRV format as per MongoDB Atlas (/mongodb/docs).
+- Set DB_NAME to "museum" to match the requirement.
+
+### 3) Run
+
+- Terminal 1 (backend): `npm run dev:server`
+- Terminal 2 (frontend): `npm run dev`
+
+Health check:
+```
+curl http://localhost:3000/api/health
+# {"status":"ok"}
+```
+
+### 4) API
+
+Base URL (local): `http://localhost:3000`
+
+Auth
+- POST `/api/auth/register`
+  - Body (JSON):
+    ```
+    {
+      "email": "user@example.com",
+      "password": "secret123",
+      "lastName": "Прізвище",
+      "firstName": "Ім’я",
+      "middleName": "По батькові",
+      "birthDate": "1990-01-01"
+    }
+    ```
+  - 201 Created → `{ message, user }`
+- POST `/api/auth/login`
+  - Body (JSON):
+    ```
+    { "email": "user@example.com", "password": "secret123" }
+    ```
+  - 200 OK → `{ message, user }`
+
+Expos
+- GET `/api/expos` → List all expos (sorted by date ascending)
+- GET `/api/expos/:expoId` → Get single expo by business key `expoId`
+- POST `/api/expos`
+  - Body (JSON):
+    ```
+    {
+      "expoId": "expo-2025-01",
+      "title": "Назва",
+      "description": "Опис",
+      "date": "2025-05-15"
+    }
+    ```
+  - 201 Created → `{ message, expo }`
+- PUT `/api/expos/:expoId` → Update fields: `title`, `description`, `date`
+- DELETE `/api/expos/:expoId` → Delete by `expoId`
+
+### 5) Frontend integration
+
+- The burger menu now includes Auth buttons:
+  - "Авторизація" opens a Login modal (Email, Password)
+  - "Реєстрація" opens a Registration modal (Email, Password, Прізвище, Ім’я, По батькові, Дата народження)
+- On mobile, the auth buttons are shown above navigation; on tablet/desktop, they are integrated as the 3rd section of the green menu block.
+
+Override API base URL with Vite env (optional):
+- Create `src/.env` or use system env with `VITE_API_URL="https://your-deployment.example.com"`
+
+### 6) Files touched
+
+- Frontend
+  - Markup: [`index.html`](src/index.html:1)
+  - Styles: [`main.scss`](src/styles/main.scss:1)
+  - Script: [`main.js`](src/scripts/main.js:1)
+- Backend
+  - Entrypoint: [`server/index.js`](server/index.js:1)
+  - Models: [`server/models/User.js`](server/models/User.js:1), [`server/models/Expo.js`](server/models/Expo.js:1)
+  - Routes: [`server/routes/auth.js`](server/routes/auth.js:1), [`server/routes/expos.js`](server/routes/expos.js:1)
+
+### 7) cURL examples
+
+Register:
+```
+curl -X POST http://localhost:3000/api/auth/register ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"user@example.com\",\"password\":\"secret123\",\"lastName\":\"Прізвище\",\"firstName\":\"Ім’я\",\"middleName\":\"По батькові\",\"birthDate\":\"1990-01-01\"}"
+```
+
+Login:
+```
+curl -X POST http://localhost:3000/api/auth/login ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"user@example.com\",\"password\":\"secret123\"}"
+```
+
+Create expo:
+```
+curl -X POST http://localhost:3000/api/expos ^
+  -H "Content-Type: application/json" ^
+  -d "{\"expoId\":\"expo-2025-01\",\"title\":\"Назва\",\"description\":\"Опис\",\"date\":\"2025-05-15\"}"
+```
+
+List expos:
+```
+curl http://localhost:3000/api/expos
+```
+
+
+## Admin panel
+
+A separate admin page is included to manage "Виставки" (expos). It loads data from MongoDB (collection "expos") and allows viewing, editing, and deleting entries.
+
+- Page: [`admin.html`](src/admin.html:1)
+- Script: [`admin.js`](src/scripts/admin.js:1)
+- Styles: [`admin.scss`](src/styles/admin.scss:1)
+- Backend model: [`Expo.js`](server/models/Expo.js:1) with fields: expoId, title, description, author, photoUrl, date
+- Backend routes: [`expos.js`](server/routes/expos.js:1) providing GET (list/one), POST, PUT, DELETE
+
+Behavior
+- After successful login or registration the app redirects to the admin page automatically.
+- Responsive table with horizontal scroll on small screens.
+- Actions per row:
+  - 👁 Перегляд: opens a modal with full details and photo
+  - ✎ Редагування: opens a modal form to update fields (title, author, photoUrl, date, description)
+  - 🗑 Видалення: deletes the expo (with confirmation)
+
+Local usage
+1) Start backend:
+   - `npm run dev:server`
+2) Start frontend:
+   - `npm run dev`
+3) Authenticate via burger menu → "Авторизація" or "Реєстрація". On success you’ll be redirected to:
+   - `http://localhost:5173/admin.html`
+
+API fields (expos)
+```
+{
+  "expoId": "unique-id",
+  "title": "Назва картини",
+  "description": "Опис",
+  "author": "Автор",
+  "photoUrl": "https://...",
+  "date": "2025-05-15"
+}
+```

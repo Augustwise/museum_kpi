@@ -40,9 +40,17 @@
     display: flex;
     gap: 15px;
 
-    img {
-      height: 24px;
-      width: 24px;
+    .footer__social-link {
+      transition: opacity #{$animation-duration} ease;
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      img {
+        height: 24px;
+        width: 24px;
+      }
     }
   }
 
@@ -90,7 +98,7 @@
     a.footer__contact-link {
       color: $c-gray-p;
       text-decoration: none;
-      transition: color 0.3s ease;
+      transition: color #{$animation-duration} ease;
 
       &:hover {
         color: rgb(58, 51, 251);
@@ -148,6 +156,7 @@
     color: $c-black;
     text-decoration: none;
     font-weight: 500;
+    transition: color #{$animation-duration} ease;
 
     &:hover {
       color: rgb(58, 51, 251);

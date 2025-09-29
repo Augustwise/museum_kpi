@@ -65,8 +65,8 @@
   object-fit: cover;
   display: block;
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform #{$animation-duration} ease,
+    box-shadow #{$animation-duration} ease;
 
   @media (min-width: $breakpoint-desktop) {
     &:hover {
@@ -85,7 +85,7 @@
 
   &__wrapper {
     display: flex;
-    transition: transform 0.3s ease-in-out;
+    transition: transform #{$animation-duration} ease-in-out;
     margin: 0 -8.5px;
   }
 

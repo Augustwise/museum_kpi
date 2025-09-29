@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Авторизація — NAMU</title>
+    <link rel="icon" type="image/x-icon" href="./images/NAMU_logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="auth-page">
+    <div id="notification" class="notification" style="display:none;"></div>
+    <main class="auth-card" role="main">
+      <header style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <img src="./images/NAMU_logo.svg" alt="NAMU" width="32" height="32" />
+        <h1 class="auth-title">Авторизація</h1>
+      </header>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <label class="auth-label">Email
+          <input type="email" name="email" required autocomplete="email" class="auth-input" />
+        </label>
+
+        <label class="auth-label">Пароль
+          <input type="password" name="password" required minlength="6" autocomplete="current-password" class="auth-input" />
+        </label>
+
+        <button type="submit" class="auth-submit">Увійти</button>
+      </form>
+
+      <div class="auth-actions">
+        <p>Немає акаунта? <a href="./register.html">Зареєструватися</a></p>
+        <p style="margin-top:8px"><a href="./index.html">← На головну</a></p>
+      </div>
+    </main>
+
+    <script type="module" src="./scripts/auth.js"></script>
+  </body>
+</html>

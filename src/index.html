@@ -19,6 +19,7 @@
     <link
       rel="preconnect"
       href="https://fonts.gstatic.com"
+      crossorigin
     />
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
@@ -79,6 +80,11 @@
           >
             x
           </button>
+
+          <div class="mobile-menu__auth" id="authButtons">
+            <a class="auth-button" href="./login.html">Авторизація</a>
+            <a class="register-button" href="./register.html">Реєстрація</a>
+          </div>
 
           <nav class="mobile-menu__nav">
             <a
@@ -147,6 +153,8 @@
         </div>
       </aside>
     </header>
+
+    <div id="notification" class="notification" style="display:none;"></div>
 
     <main class="main-content">
       <section class="hero-section">
@@ -513,6 +521,8 @@
         </div>
       </div>
     </footer>
+
+
     <script
       type="module"
       src="./scripts/main.js"

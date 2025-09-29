@@ -47,6 +47,19 @@ document.addEventListener('DOMContentLoaded', () => {
     setBodyScrollLock(false);
   };
 
+  // Backdrop click: pulse the mobile menu content instead of closing (0.7s)
+  const pulseMenu = () => {
+    if (!mobileMenu) return;
+    const content = mobileMenu.querySelector('.mobile-menu__content');
+    if (!content) return;
+    content.classList.remove('mobile-menu__content--pulse');
+    void content.offsetWidth; // reflow to restart animation
+    content.classList.add('mobile-menu__content--pulse');
+    setTimeout(() => {
+      content.classList.remove('mobile-menu__content--pulse');
+    }, 700);
+  };
+
   if (burgerMenu) {
     burgerMenu.addEventListener('click', openMobileMenu);
   }
@@ -58,7 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mobileMenu) {
     mobileMenu.addEventListener('click', (event) => {
       if (event.target === mobileMenu) {
-        closeMobileMenu();
+        // Instead of closing on empty area click, pulse the menu to indicate it's active
+        pulseMenu();
       }
     });
   }
@@ -140,4 +154,21 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+
+
+
+
+  // API base (can be overridden by Vite env: VITE_API_URL)
+  const API_BASE =
+    (typeof import.meta !== 'undefined' &&
+      import.meta.env &&
+      import.meta.env.VITE_API_URL) ||
+    'http://localhost:3000';
+
+  const jsonHeaders = {
+    'Content-Type': 'application/json',
+  };
+
+
 });

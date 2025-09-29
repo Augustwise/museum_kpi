@@ -220,7 +220,7 @@ a {
   font-weight: 500;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all #{$animation-duration} ease;
   padding: 0;
   overflow: hidden;
   width: 280px;
@@ -355,11 +355,11 @@ a {
   top: 0;
   left: 0;
   width: 100%;
-  height: 68vh;
+  height: 74vh;
   background: $c-green;
   z-index: 200;
   transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
+  transition: transform #{$animation-duration} ease-in-out;
 
   @media (min-width: $breakpoint-tablet) {
     height: 40vh;
@@ -418,7 +418,7 @@ a {
     text-decoration: none;
     font-size: 18px;
     font-weight: 500;
-    transition: color 0.3s ease;
+    transition: color #{$animation-duration} ease;
 
     &:hover {
       color: rgb(244, 255, 125);
@@ -492,6 +492,57 @@ a {
       gap: 40px;
     }
   }
+
+  &__auth {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    /* Prevent overlap with close button and add bottom separator on mobile */
+    position: relative;
+    margin-top: 8px;         /* slight downward offset */
+    padding-bottom: 16px;    /* space for the separator line */
+    margin-left: 50px;       /* align with nav to avoid the close button */
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    @media (min-width: $breakpoint-tablet) {
+      margin-top: 0;
+      margin-bottom: 0;
+      margin-left: 0;
+      padding-left: 40px;
+
+      /* Switch to vertical divider on tablet+ */
+      &::before {
+        left: -20px;
+        right: auto;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.5);
+      }
+    }
+  }
+}
+/* Pulse animation for mobile menu (0.7s) */
+@keyframes mobileMenuPulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.mobile-menu__content--pulse {
+  animation: mobileMenuPulse 0.7s ease;
+  will-change: transform;
 }
 
 @media (min-width: $breakpoint-mobile) {
@@ -504,6 +555,11 @@ a {
   .mobile-menu__content {
     margin-left: calc(#{$tablet-margin} - 20px);
   }
+
+  /* Ensure three sections order: Nav | Info | Auth on tablet/desktop */
+  .mobile-menu__nav { order: 1; }
+  .mobile-menu__info { order: 2; }
+  .mobile-menu__auth { order: 3; }
 
   .burger-menu .burger-icon {
     width: 28px;
@@ -541,12 +597,179 @@ a {
   opacity: 0;
   visibility: hidden;
   transition:
-    opacity 0.6s ease-in-out,
-    visibility 0.6s ease-in-out;
+    opacity #{$animation-duration} ease-in-out,
+    visibility #{$animation-duration} ease-in-out;
 
   &.active {
     opacity: 1;
     visibility: visible;
+  }
+}
+
+/* Auth buttons inside green mobile-menu */
+.auth-button,
+.register-button {
+  appearance: none;
+  background: transparent;
+  text-decoration: none;
+  color: $c-white;
+  border: 1px solid $c-white;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all #{$animation-duration} ease-in-out;
+
+  &:hover {
+    background: $c-white;
+    color: $c-green;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: $breakpoint-tablet) {
+  .auth-button,
+  .register-button {
+    font-size: 15px;
+    padding: 12px 18px;
+  }
+}
+
+/* Auth pages (login/register) */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  background: $c-white;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 560px;
+  background: $c-white;
+  color: $c-gray-main;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eef1f2;
+
+  @media (min-width: $breakpoint-tablet) {
+    padding: 28px 32px;
+  }
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  letter-spacing: 0.3px;
+  color: #1a5a4c;
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.auth-label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: $c-gray-p;
+  font-family: Montserrat, sans-serif;
+}
+
+.auth-input {
+   width: 100%;
+   height: 42px;
+   border-radius: 6px;
+   border: 1px solid #e0e0e0;
+   padding: 10px 12px;
+   font-family: Montserrat, sans-serif;
+   font-size: 14px;
+   outline: none;
+   transition: border-color #{$animation-duration} ease, box-shadow #{$animation-duration} ease;
+
+   &:focus {
+     border-color: $c-green;
+     box-shadow: 0 0 0 3px rgba(26, 90, 76, 0.1);
+   }
+ }
+
+.auth-submit {
+  margin-top: 8px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid $c-green;
+  background: $c-green;
+  color: $c-white;
+  font-family: Montserrat, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter #{$animation-duration} ease-in-out;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.auth-actions {
+  margin-top: 12px;
+  font-size: 14px;
+
+  a {
+    color: $c-green;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* Notifications */
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: $c-white;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity #{$animation-duration} ease, visibility #{$animation-duration} ease, transform #{$animation-duration} ease;
+  max-width: 90%;
+  word-wrap: break-word;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  &.success {
+    background: $c-green;
+  }
+
+  &.error {
+    background: $c-red;
   }
 }
 

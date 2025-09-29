@@ -100,8 +100,8 @@
     display: block;
     object-fit: cover;
     transition:
-      transform 0.3s ease,
-      box-shadow 0.3s ease;
+      transform #{$animation-duration} ease,
+      box-shadow #{$animation-duration} ease;
 
     @media (min-width: $breakpoint-tablet) {
       height: 400px;
