@@ -1,23 +1,59 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
 const exposRoutes = require('./routes/expos');
 
-const app = express();
+async function createApp() {
+  const app = express();
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
-app.use(cors({ origin: CORS_ORIGIN }));
-app.use(express.json());
+  // No CORS needed when frontend and backend share the same origin
+  app.use(express.json());
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+  // Health check
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+  });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/expos', exposRoutes);
+  // API routes
+  app.use('/api/auth', authRoutes);
+  app.use('/api/expos', exposRoutes);
+
+  // Frontend integration
+  const isProd = process.env.NODE_ENV === 'production';
+  const rootDir = path.resolve(__dirname, '..');
+  const distPath = path.resolve(rootDir, 'dist');
+
+  if (!isProd) {
+    // Vite dev server in middleware mode for a single unified server
+    const { createServer } = await import('vite');
+    const vite = await createServer({
+      configFile: path.resolve(rootDir, 'vite.config.mjs'),
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    // Serve built frontend in production
+    app.use(express.static(distPath));
+
+    // Serve existing files directly; otherwise fall back to index.html (SPA)
+    app.get('*', (req, res) => {
+      const candidate = path.join(distPath, req.path);
+      try {
+        if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+          return res.sendFile(candidate);
+        }
+      } catch {}
+      return res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  return app;
+}
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -30,8 +66,9 @@ if (!MONGODB_URI) {
 
 mongoose
   .connect(MONGODB_URI, { dbName: DB_NAME })
-  .then(() => {
+  .then(async () => {
     console.log(`Connected to MongoDB (db: ${DB_NAME})`);
+    const app = await createApp();
     app.listen(PORT, () => {
       console.log(`Server listening on http://localhost:${PORT}`);
     });
