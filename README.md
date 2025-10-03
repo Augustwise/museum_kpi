@@ -44,8 +44,6 @@ This project now includes a Node.js backend to persist users and expos to MongoD
 
 ### 2) Environment variables
 
-Create or update `.env` in the project root:
-
 ```
 MONGODB_URI="mongodb+srv://&lt;db_username&gt;:&lt;db_password&gt;@cluster0.r8xdpjy.mongodb.net/?retryWrites=true&amp;w=majority&amp;appName=Cluster0"
 DB_NAME="museum"
@@ -120,44 +118,6 @@ Expos
 Override API base URL with Vite env (optional):
 - Create `src/.env` or use system env with `VITE_API_URL="https://your-deployment.example.com"`
 
-### 6) Files touched
-
-- Frontend
-  - Markup: [`index.html`](src/index.html:1)
-  - Styles: [`main.scss`](src/styles/main.scss:1)
-  - Script: [`main.js`](src/scripts/main.js:1)
-- Backend
-  - Entrypoint: [`server/index.js`](server/index.js:1)
-  - Models: [`server/models/User.js`](server/models/User.js:1), [`server/models/Expo.js`](server/models/Expo.js:1)
-  - Routes: [`server/routes/auth.js`](server/routes/auth.js:1), [`server/routes/expos.js`](server/routes/expos.js:1)
-
-### 7) cURL examples
-
-Register:
-```
-curl -X POST http://localhost:3000/api/auth/register ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@example.com\",\"password\":\"secret123\",\"lastName\":\"Прізвище\",\"firstName\":\"Ім’я\",\"middleName\":\"По батькові\",\"birthDate\":\"1990-01-01\"}"
-```
-
-Login:
-```
-curl -X POST http://localhost:3000/api/auth/login ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@example.com\",\"password\":\"secret123\"}"
-```
-
-Create expo:
-```
-curl -X POST http://localhost:3000/api/expos ^
-  -H "Content-Type: application/json" ^
-  -d "{\"expoId\":\"expo-2025-01\",\"title\":\"Назва\",\"description\":\"Опис\",\"date\":\"2025-05-15\"}"
-```
-
-List expos:
-```
-curl http://localhost:3000/api/expos
-```
 
 
 ## Admin panel
@@ -185,15 +145,3 @@ Local usage
    - `npm run dev`
 3) Authenticate via burger menu → "Авторизація" or "Реєстрація". On success you’ll be redirected to:
    - `http://localhost:5173/admin.html`
-
-API fields (expos)
-```
-{
-  "expoId": "unique-id",
-  "title": "Назва картини",
-  "description": "Опис",
-  "author": "Автор",
-  "photoUrl": "https://...",
-  "date": "2025-05-15"
-}
-```
