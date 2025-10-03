@@ -6,7 +6,6 @@ const router = express.Router();
 router.use(auth);
 
 // GET /api/expos
-// List all expos (sorted by date ascending)
 router.get('/', async (req, res) => {
   try {
     const expos = await Expo.find({}).sort({ date: 1 });
