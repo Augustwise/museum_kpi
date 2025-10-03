@@ -15,10 +15,19 @@ const signToken = (user) => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, lastName, firstName, middleName = '', birthDate } = req.body;
+    const { email, password, lastName, firstName, middleName = '', birthDate, gender } = req.body;
 
     if (!email || !password || !lastName || !firstName || !birthDate) {
       return res.status(400).json({ message: 'Вкажіть email, пароль, прізвище, ім’я та дату народження' });
+    }
+
+    let normalizedGender;
+    if (gender !== undefined && gender !== null && gender !== '') {
+      const allowedGenders = ['male', 'female'];
+      if (!allowedGenders.includes(gender)) {
+        return res.status(400).json({ message: 'Некоректне значення статі' });
+      }
+      normalizedGender = gender;
     }
 
     const exists = await User.findOne({ email: email.toLowerCase().trim() });
@@ -29,14 +38,20 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    const user = new User({
+    const userData = {
       email: email.toLowerCase().trim(),
       passwordHash,
       lastName: String(lastName).trim(),
       firstName: String(firstName).trim(),
       middleName: String(middleName || '').trim(),
       birthDate: new Date(birthDate),
-    });
+    };
+
+    if (normalizedGender) {
+      userData.gender = normalizedGender;
+    }
+
+    const user = new User(userData);
 
     await user.save();
 
@@ -51,6 +66,7 @@ router.post('/register', async (req, res) => {
         lastName: user.lastName,
         firstName: user.firstName,
         middleName: user.middleName,
+        gender: user.gender || null,
         birthDate: user.birthDate,
       },
     });
@@ -90,6 +106,7 @@ router.post('/login', async (req, res) => {
         lastName: user.lastName,
         firstName: user.firstName,
         middleName: user.middleName,
+        gender: user.gender || null,
         birthDate: user.birthDate,
       },
     });

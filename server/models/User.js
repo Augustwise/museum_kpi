@@ -17,6 +17,11 @@ const UserSchema = new mongoose.Schema(
     lastName: { type: String, required: true, trim: true },
     firstName: { type: String, required: true, trim: true },
     middleName: { type: String, trim: true, default: '' },
+    gender: {
+      type: String,
+      enum: ['male', 'female'],
+      required: false,
+    },
     birthDate: { type: Date, required: true },
   },
   { timestamps: true }
