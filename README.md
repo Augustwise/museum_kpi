@@ -33,7 +33,7 @@ src/
 
 This project now includes a Node.js backend to persist users and expos to MongoDB Atlas.
 
-### 1) Setup
+### Setup
 
 - Install deps:
   - Client dev deps (already used): vite, sass
@@ -42,20 +42,7 @@ This project now includes a Node.js backend to persist users and expos to MongoD
   - Run backend: `npm run dev:server`
   - Run frontend: `npm run dev` (Vite)
 
-### 2) Environment variables
-
-```
-MONGODB_URI="mongodb+srv://&lt;db_username&gt;:&lt;db_password&gt;@cluster0.r8xdpjy.mongodb.net/?retryWrites=true&amp;w=majority&amp;appName=Cluster0"
-DB_NAME="museum"
-PORT="3000"
-CORS_ORIGIN="http://localhost:5173"
-```
-
-Notes:
-- Use SRV format as per MongoDB Atlas (/mongodb/docs).
-- Set DB_NAME to "museum" to match the requirement.
-
-### 3) Run
+### Run
 
 - Terminal 1 (backend): `npm run dev:server`
 - Terminal 2 (frontend): `npm run dev`
@@ -66,7 +53,7 @@ curl http://localhost:3000/api/health
 # {"status":"ok"}
 ```
 
-### 4) API
+### API
 
 Base URL (local): `http://localhost:3000`
 
@@ -108,7 +95,7 @@ Expos
 - PUT `/api/expos/:expoId` → Update fields: `title`, `description`, `date`
 - DELETE `/api/expos/:expoId` → Delete by `expoId`
 
-### 5) Frontend integration
+### Frontend integration
 
 - The burger menu now includes Auth buttons:
   - "Авторизація" opens a Login modal (Email, Password)
