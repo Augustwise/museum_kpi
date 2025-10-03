@@ -690,6 +690,36 @@ a {
   font-family: Montserrat, sans-serif;
 }
 
+.auth-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-legend {
+  margin-bottom: 0;
+  font-size: 13px;
+  color: $c-gray-p;
+  font-family: Montserrat, sans-serif;
+}
+
+.auth-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  color: $c-gray-p;
+  cursor: pointer;
+
+  input[type='radio'] {
+    accent-color: $c-green;
+  }
+}
+
 .auth-input {
    width: 100%;
    height: 42px;

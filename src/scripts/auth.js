@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lastName: formData.get('lastName'),
         firstName: formData.get('firstName'),
         middleName: formData.get('middleName') || '',
+        gender: formData.get('gender') || null,
         birthDate: formData.get('birthDate'),
       };
 
