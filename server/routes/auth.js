@@ -15,10 +15,18 @@ const signToken = (user) => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, lastName, firstName, middleName = '', birthDate, gender } = req.body;
+    const { email, password, lastName, firstName, middleName = '', birthDate, gender, phone } = req.body;
 
-    if (!email || !password || !lastName || !firstName || !birthDate) {
-      return res.status(400).json({ message: 'Вкажіть email, пароль, прізвище, ім’я та дату народження' });
+    if (!email || !password || !lastName || !firstName || !birthDate || !phone) {
+      return res
+        .status(400)
+        .json({ message: 'Вкажіть email, пароль, прізвище, ім’я, дату народження та номер телефону' });
+    }
+
+    const normalizedPhone = String(phone).trim();
+    const ukrainePhonePattern = /^\+380 \d{2} \d{3} \d{2} \d{2}$/;
+    if (!ukrainePhonePattern.test(normalizedPhone)) {
+      return res.status(400).json({ message: 'Номер телефону має бути у форматі +380 00 000 00 00' });
     }
 
     let normalizedGender;
@@ -45,6 +53,7 @@ router.post('/register', async (req, res) => {
       firstName: String(firstName).trim(),
       middleName: String(middleName || '').trim(),
       birthDate: new Date(birthDate),
+      phone: normalizedPhone,
     };
 
     if (normalizedGender) {
@@ -68,6 +77,7 @@ router.post('/register', async (req, res) => {
         middleName: user.middleName,
         gender: user.gender || null,
         birthDate: user.birthDate,
+        phone: user.phone,
       },
     });
   } catch (err) {
@@ -108,6 +118,7 @@ router.post('/login', async (req, res) => {
         middleName: user.middleName,
         gender: user.gender || null,
         birthDate: user.birthDate,
+        phone: user.phone,
       },
     });
   } catch (err) {

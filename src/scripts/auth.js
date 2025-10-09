@@ -1,4 +1,5 @@
 import '../styles/main.scss';
+import IMask from 'imask';
 
 document.addEventListener('DOMContentLoaded', () => {
   const API_BASE =
@@ -64,9 +65,41 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (registerForm) {
+    const phoneInput = registerForm.querySelector('#phone');
+    const phoneError = registerForm.querySelector('#phoneError');
+    let phoneMask;
+
+    const showPhoneError = () => {
+      if (!phoneError || !phoneMask) return;
+
+      if (!phoneMask.masked.isComplete) {
+        phoneError.textContent = 'Введіть номер у форматі +380 00 000 00 00';
+      } else {
+        phoneError.textContent = '';
+      }
+    };
+
+    if (phoneInput) {
+      phoneMask = IMask(phoneInput, {
+        mask: '+{380} 00 000 00 00',
+      });
+
+      phoneInput.addEventListener('input', showPhoneError);
+      phoneInput.addEventListener('blur', showPhoneError);
+    }
+
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(registerForm);
+
+      if (!phoneMask || !phoneMask.masked.isComplete) {
+        showPhoneError();
+        if (phoneInput) {
+          phoneInput.focus();
+        }
+        return;
+      }
+
       const payload = {
         email: formData.get('email'),
         password: formData.get('password'),
@@ -75,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         middleName: formData.get('middleName') || '',
         gender: formData.get('gender') || null,
         birthDate: formData.get('birthDate'),
+        phone: phoneMask.value,
       };
 
       try {
