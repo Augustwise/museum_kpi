@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 
 const authRoutes = require('./routes/auth');
 const exposRoutes = require('./routes/expos');
+const usersRoutes = require('./routes/users');
 
 async function createApp() {
   const app = express();
@@ -21,6 +22,7 @@ async function createApp() {
   // API routes
   app.use('/api/auth', authRoutes);
   app.use('/api/expos', exposRoutes);
+  app.use('/api/users', usersRoutes);
 
   // Frontend integration
   const isProd = process.env.NODE_ENV === 'production';

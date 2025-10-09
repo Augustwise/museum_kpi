@@ -71,6 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const tbody = document.getElementById('exposTbody');
   const refreshBtn = document.getElementById('refreshTable');
 
+  const adminsTbody = document.getElementById('adminsTbody');
+  const deleteSelectedAdminsBtn = document.getElementById('deleteSelectedAdmins');
+  const selectAllAdminsCheckbox = document.getElementById('adminsSelectAll');
+
+  let adminsData = [];
+  const selectedAdminIds = new Set();
+
   // Modals
   const viewModal = document.getElementById('viewModal');
   const closeViewBtn = document.getElementById('closeView');
@@ -203,6 +210,71 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+  const fmtRegistrationDate = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = `${d.getMonth() + 1}`.padStart(2, '0');
+    const dd = `${d.getDate()}`.padStart(2, '0');
+    return `${dd}:${mm}:${yyyy}`;
+  };
+
+  const mapGender = (value) => {
+    if (!value) return 'не вказано';
+    if (value === 'male') return 'чоловіча';
+    if (value === 'female') return 'жіноча';
+    return value;
+  };
+
+  const fullName = (user) =>
+    [user?.lastName, user?.firstName, user?.middleName]
+      .map((part) => (part || '').trim())
+      .filter(Boolean)
+      .join(' ') || '—';
+
+  const pruneSelectedAdmins = () => {
+    const validIds = new Set(adminsData.map((user) => user.id));
+    selectedAdminIds.forEach((id) => {
+      if (!validIds.has(id)) {
+        selectedAdminIds.delete(id);
+      }
+    });
+  };
+
+  const updateSelectAllAdmins = () => {
+    if (!selectAllAdminsCheckbox) return;
+    if (!adminsData.length) {
+      selectAllAdminsCheckbox.checked = false;
+      selectAllAdminsCheckbox.indeterminate = false;
+      return;
+    }
+
+    let selectedCount = 0;
+    adminsData.forEach((user) => {
+      if (selectedAdminIds.has(user.id)) selectedCount += 1;
+    });
+
+    if (selectedCount === 0) {
+      selectAllAdminsCheckbox.checked = false;
+      selectAllAdminsCheckbox.indeterminate = false;
+    } else if (selectedCount === adminsData.length) {
+      selectAllAdminsCheckbox.checked = true;
+      selectAllAdminsCheckbox.indeterminate = false;
+    } else {
+      selectAllAdminsCheckbox.checked = false;
+      selectAllAdminsCheckbox.indeterminate = true;
+    }
+  };
+
+  const updateDeleteAdminsButton = () => {
+    if (!deleteSelectedAdminsBtn) return;
+    const count = selectedAdminIds.size;
+    deleteSelectedAdminsBtn.disabled = count === 0;
+    deleteSelectedAdminsBtn.textContent =
+      count > 0 ? `Видалити вибраних (${count})` : 'Видалити вибраних';
+  };
+
   const renderRows = (data) => {
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -271,6 +343,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const renderAdmins = (data) => {
+    if (!adminsTbody) return;
+    adminsTbody.innerHTML = '';
+
+    if (!Array.isArray(data) || data.length === 0) {
+      const emptyRow = document.createElement('tr');
+      const emptyCell = document.createElement('td');
+      emptyCell.colSpan = 5;
+      emptyCell.className = 'empty-row';
+      emptyCell.textContent = 'Немає зареєстрованих адміністраторів';
+      emptyRow.appendChild(emptyCell);
+      adminsTbody.appendChild(emptyRow);
+      return;
+    }
+
+    data.forEach((user) => {
+      const tr = document.createElement('tr');
+
+      const tdCheckbox = document.createElement('td');
+      tdCheckbox.className = 'checkbox-column';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'row-checkbox';
+      checkbox.dataset.id = user.id;
+      checkbox.checked = selectedAdminIds.has(user.id);
+      tdCheckbox.appendChild(checkbox);
+
+      const tdName = document.createElement('td');
+      tdName.className = 'cell-name';
+      tdName.textContent = fullName(user);
+
+      const tdEmail = document.createElement('td');
+      tdEmail.className = 'cell-email';
+      tdEmail.textContent = user.email || '';
+
+      const tdDate = document.createElement('td');
+      tdDate.textContent = fmtRegistrationDate(user.createdAt);
+
+      const tdGender = document.createElement('td');
+      tdGender.textContent = mapGender(user.gender);
+
+      tr.append(tdCheckbox, tdName, tdEmail, tdDate, tdGender);
+      adminsTbody.appendChild(tr);
+    });
+  };
+
   const fetchExpos = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/expos`, {
@@ -288,6 +406,37 @@ document.addEventListener('DOMContentLoaded', () => {
       renderRows(data);
     } catch (err) {
       showNotification(err.message || 'Сталася помилка при завантаженні виставок', 'error');
+    }
+  };
+
+  const fetchAdmins = async () => {
+    if (!adminsTbody) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/users`, {
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          try {
+            localStorage.removeItem('authToken');
+          } catch {}
+          window.location.href = './index.html';
+          return;
+        }
+        throw new Error('Не вдалося отримати список адміністраторів');
+      }
+
+      const data = await res.json();
+      adminsData = Array.isArray(data) ? data : [];
+      pruneSelectedAdmins();
+      renderAdmins(adminsData);
+      updateSelectAllAdmins();
+      updateDeleteAdminsButton();
+    } catch (err) {
+      showNotification(
+        err.message || 'Сталася помилка при завантаженні адміністраторів',
+        'error'
+      );
     }
   };
 
@@ -328,6 +477,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return data.expo;
   };
 
+  const deleteAdmins = async (ids) => {
+    const res = await fetch(`${API_BASE}/api/users`, {
+      method: 'DELETE',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ ids }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || 'Не вдалося видалити адміністраторів');
+    return data;
+  };
+
   const deleteExpo = async (expoId) => {
     const res = await fetch(`${API_BASE}/api/expos/${encodeURIComponent(expoId)}`, {
       method: 'DELETE',
@@ -338,6 +498,71 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   if (refreshBtn) refreshBtn.addEventListener('click', fetchExpos);
+
+  if (adminsTbody) {
+    adminsTbody.addEventListener('change', (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') return;
+      const id = target.dataset.id;
+      if (!id) return;
+      if (target.checked) {
+        selectedAdminIds.add(id);
+      } else {
+        selectedAdminIds.delete(id);
+      }
+      updateSelectAllAdmins();
+      updateDeleteAdminsButton();
+    });
+  }
+
+  if (selectAllAdminsCheckbox) {
+    selectAllAdminsCheckbox.addEventListener('change', () => {
+      const shouldSelectAll = selectAllAdminsCheckbox.checked;
+      selectAllAdminsCheckbox.indeterminate = false;
+      adminsData.forEach((user) => {
+        if (shouldSelectAll) {
+          selectedAdminIds.add(user.id);
+        } else {
+          selectedAdminIds.delete(user.id);
+        }
+      });
+      if (adminsTbody) {
+        const checkboxes = adminsTbody.querySelectorAll("input[type='checkbox'][data-id]");
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = shouldSelectAll;
+        });
+      }
+      updateSelectAllAdmins();
+      updateDeleteAdminsButton();
+    });
+  }
+
+  if (deleteSelectedAdminsBtn) {
+    deleteSelectedAdminsBtn.addEventListener('click', async () => {
+      if (!selectedAdminIds.size) return;
+      const ids = Array.from(selectedAdminIds);
+      const confirmation = window.confirm(
+        'Ви впевнені, що хочете видалити вибраних адміністраторів?'
+      );
+      if (!confirmation) return;
+
+      const originalText = deleteSelectedAdminsBtn.textContent;
+      deleteSelectedAdminsBtn.disabled = true;
+      deleteSelectedAdminsBtn.textContent = 'Видалення...';
+
+      try {
+        await deleteAdmins(ids);
+        selectedAdminIds.clear();
+        await fetchAdmins();
+        showNotification('Адміністраторів видалено', 'success');
+      } catch (err) {
+        showNotification(err.message || 'Не вдалося видалити адміністраторів', 'error');
+      } finally {
+        deleteSelectedAdminsBtn.textContent = originalText;
+        updateDeleteAdminsButton();
+      }
+    });
+  }
 
   if (tbody) {
     tbody.addEventListener('click', async (e) => {
@@ -446,9 +671,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial load with auth verification
   ensureAuth()
-    .then(() => {
+    .then(async () => {
       try { document.documentElement.style.visibility = 'visible'; } catch {}
-      return fetchExpos();
+      await Promise.all([fetchExpos(), fetchAdmins()]);
     })
     .catch(() => { /* already redirected */ });
 });
