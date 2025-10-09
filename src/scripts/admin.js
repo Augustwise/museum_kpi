@@ -619,27 +619,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (deleteSelectedAdminsBtn) {
-    deleteSelectedAdminsBtn.addEventListener('click', () => {
+    deleteSelectedAdminsBtn.addEventListener('click', async () => {
       if (!selectedAdminIds.size) return;
-      pendingDeleteAdminIds = Array.from(selectedAdminIds);
+      const ids = Array.from(selectedAdminIds);
+      const confirmation = window.confirm(
+        'Ви впевнені, що хочете видалити вибраних адміністраторів?'
+      );
+      if (!confirmation) return;
 
-      if (confirmDeleteAdminsBtn) {
-        confirmDeleteAdminsBtn.disabled = false;
-        confirmDeleteAdminsBtn.textContent = confirmDeleteAdminsOriginalText;
-      }
+      const originalText = deleteSelectedAdminsBtn.textContent;
+      deleteSelectedAdminsBtn.disabled = true;
+      deleteSelectedAdminsBtn.textContent = 'Видалення...';
 
-      if (deleteAdminsMessage) {
-        const count = pendingDeleteAdminIds.length;
-        const noun =
-          count === 1
-            ? 'цього адміністратора'
-            : `вибраних адміністраторів (${count})`;
-        deleteAdminsMessage.textContent =
-          `Ви впевнені, що хочете видалити ${noun}? Дію неможливо скасувати.`;
-      }
-
-      if (deleteAdminsModal) {
-        toggleModal(deleteAdminsModal, true);
+      try {
+        await deleteAdmins(ids);
+        selectedAdminIds.clear();
+        await fetchAdmins();
+        showNotification('Адміністраторів видалено', 'success');
+      } catch (err) {
+        showNotification(err.message || 'Не вдалося видалити адміністраторів', 'error');
+      } finally {
+        deleteSelectedAdminsBtn.textContent = originalText;
+        updateDeleteAdminsButton();
       }
     });
   }
