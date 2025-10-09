@@ -48,31 +48,64 @@
     <div id="notification" class="notification" style="display:none;"></div>
 
     <main class="admin-main admin-container">
-      <h1 class="admin-title">Виставки</h1>
+      <section class="admin-section">
+        <h1 class="admin-title">Виставки</h1>
 
-      <div class="table-toolbar">
-        <button id="openCreate" class="btn btn--icon">＋ Додати виставку</button>
-        <button id="refreshTable" class="btn btn--secondary">Оновити</button>
-      </div>
+        <div class="table-toolbar">
+          <button id="openCreate" class="btn btn--icon">＋ Додати виставку</button>
+          <button id="refreshTable" class="btn btn--secondary">Оновити</button>
+        </div>
 
-      <div class="table-wrapper">
-        <table class="expos-table" id="exposTable" aria-describedby="exposCaption">
-          <caption id="exposCaption" class="visually-hidden">Таблиця виставок з діями перегляду, редагування та видалення</caption>
-          <thead>
-            <tr>
-              <th scope="col" style="width:72px">№</th>
-              <th scope="col">Назва картини</th>
-              <th scope="col" style="width:120px">Фото</th>
-              <th scope="col" style="width:220px">Автор</th>
-              <th scope="col" style="width:160px">Дата</th>
-              <th scope="col" style="width:180px">Дії</th>
-            </tr>
-          </thead>
-          <tbody id="exposTbody">
-            <!-- rows injected by admin.js -->
-          </tbody>
-        </table>
-      </div>
+        <div class="table-wrapper">
+          <table class="expos-table" id="exposTable" aria-describedby="exposCaption">
+            <caption id="exposCaption" class="visually-hidden">Таблиця виставок з діями перегляду, редагування та видалення</caption>
+            <thead>
+              <tr>
+                <th scope="col" style="width:72px">№</th>
+                <th scope="col">Назва картини</th>
+                <th scope="col" style="width:120px">Фото</th>
+                <th scope="col" style="width:220px">Автор</th>
+                <th scope="col" style="width:160px">Дата</th>
+                <th scope="col" style="width:180px">Дії</th>
+              </tr>
+            </thead>
+            <tbody id="exposTbody">
+              <!-- rows injected by admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-section admin-section--users">
+        <div class="admin-section__header">
+          <h2 class="admin-subtitle">Зареєстровані адміністратори сайту</h2>
+          <div class="admin-users-actions">
+            <button id="deleteSelectedAdmins" class="btn btn--danger" type="button" disabled>
+              Видалити вибраних
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="expos-table admins-table" id="adminsTable" aria-describedby="adminsCaption">
+            <caption id="adminsCaption" class="visually-hidden">Таблиця зареєстрованих адміністраторів сайту</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="checkbox-column">
+                  <input type="checkbox" id="adminsSelectAll" aria-label="Позначити всіх" />
+                </th>
+                <th scope="col">ПІБ</th>
+                <th scope="col" style="width:240px">Електронна пошта</th>
+                <th scope="col" style="width:160px">Дата реєстрації</th>
+                <th scope="col" style="width:160px">Стать</th>
+              </tr>
+            </thead>
+            <tbody id="adminsTbody">
+              <!-- rows injected by admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <!-- View modal -->
