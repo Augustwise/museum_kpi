@@ -112,6 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmDeleteBtn = document.getElementById('confirmDelete');
   let pendingDeleteId = null;
 
+  const deleteAdminsModal = document.getElementById('deleteAdminsModal');
+  const closeDeleteAdminsBtn = document.getElementById('closeDeleteAdmins');
+  const cancelDeleteAdminsBtn = document.getElementById('cancelDeleteAdmins');
+  const confirmDeleteAdminsBtn = document.getElementById('confirmDeleteAdmins');
+  const deleteAdminsMessage = document.getElementById('deleteAdminsMessage');
+  let pendingDeleteAdminIds = null;
+  const confirmDeleteAdminsOriginalText = confirmDeleteAdminsBtn
+    ? confirmDeleteAdminsBtn.textContent
+    : '';
+
   const setBodyScrollLock = (lock) => {
     document.body.style.overflow = lock ? 'hidden' : 'auto';
   };
@@ -163,13 +173,48 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target === deleteModal) pulseModal(deleteModal);
     });
   }
+  if (deleteAdminsModal) {
+    deleteAdminsModal.addEventListener('click', (e) => {
+      if (e.target === deleteAdminsModal) pulseModal(deleteAdminsModal);
+    });
+  }
 
   if (closeViewBtn) closeViewBtn.addEventListener('click', () => toggleModal(viewModal, false));
   if (closeEditBtn) closeEditBtn.addEventListener('click', () => toggleModal(editModal, false));
   if (closeCreateBtn) closeCreateBtn.addEventListener('click', () => toggleModal(createModal, false));
   if (openCreateBtn) openCreateBtn.addEventListener('click', () => toggleModal(createModal, true));
-  if (closeDeleteBtn) closeDeleteBtn.addEventListener('click', () => { toggleModal(deleteModal, false); pendingDeleteId = null; });
-  if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => { toggleModal(deleteModal, false); pendingDeleteId = null; });
+  const resetDeleteAdminsModal = () => {
+    pendingDeleteAdminIds = null;
+    if (confirmDeleteAdminsBtn) {
+      confirmDeleteAdminsBtn.disabled = false;
+      confirmDeleteAdminsBtn.textContent = confirmDeleteAdminsOriginalText;
+    }
+  };
+
+  if (closeDeleteBtn) {
+    closeDeleteBtn.addEventListener('click', () => {
+      toggleModal(deleteModal, false);
+      pendingDeleteId = null;
+    });
+  }
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', () => {
+      toggleModal(deleteModal, false);
+      pendingDeleteId = null;
+    });
+  }
+  if (closeDeleteAdminsBtn) {
+    closeDeleteAdminsBtn.addEventListener('click', () => {
+      toggleModal(deleteAdminsModal, false);
+      resetDeleteAdminsModal();
+    });
+  }
+  if (cancelDeleteAdminsBtn) {
+    cancelDeleteAdminsBtn.addEventListener('click', () => {
+      toggleModal(deleteAdminsModal, false);
+      resetDeleteAdminsModal();
+    });
+  }
   if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener('click', async () => {
       if (!pendingDeleteId) return;
@@ -188,6 +233,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (confirmDeleteAdminsBtn) {
+    confirmDeleteAdminsBtn.addEventListener('click', async () => {
+      if (!pendingDeleteAdminIds || pendingDeleteAdminIds.length === 0) return;
+
+      const idsToDelete = [...pendingDeleteAdminIds];
+      confirmDeleteAdminsBtn.disabled = true;
+      confirmDeleteAdminsBtn.textContent = 'Видалення...';
+      if (deleteSelectedAdminsBtn) deleteSelectedAdminsBtn.disabled = true;
+
+      try {
+        await deleteAdmins(idsToDelete);
+        selectedAdminIds.clear();
+        await fetchAdmins();
+        toggleModal(deleteAdminsModal, false);
+        resetDeleteAdminsModal();
+        showNotification('Адміністраторів видалено', 'success');
+      } catch (err) {
+        showNotification(
+          err.message || 'Не вдалося видалити адміністраторів',
+          'error'
+        );
+      } finally {
+        if (confirmDeleteAdminsBtn) {
+          confirmDeleteAdminsBtn.disabled = false;
+          confirmDeleteAdminsBtn.textContent = confirmDeleteAdminsOriginalText;
+        }
+        updateSelectAllAdmins();
+        updateDeleteAdminsButton();
+      }
+    });
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (viewModal && viewModal.classList.contains('active')) toggleModal(viewModal, false);
@@ -196,6 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (deleteModal && deleteModal.classList.contains('active')) {
       toggleModal(deleteModal, false);
       pendingDeleteId = null;
+    }
+    if (deleteAdminsModal && deleteAdminsModal.classList.contains('active')) {
+      toggleModal(deleteAdminsModal, false);
+      resetDeleteAdminsModal();
     }
   });
 

@@ -184,6 +184,21 @@
       </div>
     </div>
 
+    <!-- Delete admins confirm modal -->
+    <div class="modal" id="deleteAdminsModal" aria-hidden="true" hidden>
+      <div class="modal__content">
+        <button class="modal__close" id="closeDeleteAdmins" type="button" aria-label="Закрити">×</button>
+        <h3 class="modal__title">Підтвердження видалення</h3>
+        <p id="deleteAdminsMessage">
+          Ви впевнені, що хочете видалити вибраних адміністраторів? Дію неможливо скасувати.
+        </p>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
+          <button class="btn btn--secondary" id="cancelDeleteAdmins" type="button">Скасувати</button>
+          <button class="btn" id="confirmDeleteAdmins" type="button">Так, видалити</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="./scripts/admin.js"></script>
   </body>
 </html>
