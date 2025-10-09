@@ -117,6 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelDeleteAdminsBtn = document.getElementById('cancelDeleteAdmins');
   const confirmDeleteAdminsBtn = document.getElementById('confirmDeleteAdmins');
   const deleteAdminsMessage = document.getElementById('deleteAdminsMessage');
+  const deleteAdminsMessageDefault = deleteAdminsMessage
+    ? deleteAdminsMessage.textContent.trim()
+    : '';
   let pendingDeleteAdminIds = null;
   const confirmDeleteAdminsOriginalText = confirmDeleteAdminsBtn
     ? confirmDeleteAdminsBtn.textContent
@@ -188,6 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmDeleteAdminsBtn) {
       confirmDeleteAdminsBtn.disabled = false;
       confirmDeleteAdminsBtn.textContent = confirmDeleteAdminsOriginalText;
+    }
+    if (deleteAdminsMessage && deleteAdminsMessageDefault) {
+      deleteAdminsMessage.textContent = deleteAdminsMessageDefault;
     }
   };
 
@@ -619,29 +625,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (deleteSelectedAdminsBtn) {
-    deleteSelectedAdminsBtn.addEventListener('click', async () => {
+    deleteSelectedAdminsBtn.addEventListener('click', () => {
       if (!selectedAdminIds.size) return;
-      const ids = Array.from(selectedAdminIds);
-      const confirmation = window.confirm(
-        'Ви впевнені, що хочете видалити вибраних адміністраторів?'
-      );
-      if (!confirmation) return;
 
-      const originalText = deleteSelectedAdminsBtn.textContent;
-      deleteSelectedAdminsBtn.disabled = true;
-      deleteSelectedAdminsBtn.textContent = 'Видалення...';
+      pendingDeleteAdminIds = Array.from(selectedAdminIds);
 
-      try {
-        await deleteAdmins(ids);
-        selectedAdminIds.clear();
-        await fetchAdmins();
-        showNotification('Адміністраторів видалено', 'success');
-      } catch (err) {
-        showNotification(err.message || 'Не вдалося видалити адміністраторів', 'error');
-      } finally {
-        deleteSelectedAdminsBtn.textContent = originalText;
-        updateDeleteAdminsButton();
+      if (deleteAdminsMessage) {
+        const count = pendingDeleteAdminIds.length;
+        if (count === 1) {
+          deleteAdminsMessage.textContent =
+            'Ви впевнені, що хочете видалити вибраного адміністратора? Дію неможливо скасувати.';
+        } else {
+          deleteAdminsMessage.textContent =
+            `Ви впевнені, що хочете видалити ${count} адміністраторів? Дію неможливо скасувати.`;
+        }
       }
+
+      toggleModal(deleteAdminsModal, true);
     });
   }
 
