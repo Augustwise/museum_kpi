@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
       import.meta.env.VITE_API_URL) ||
     'http://localhost:3000';
 
-  // Auth: require token to view admin
   const token = (() => {
     try {
       return localStorage.getItem('authToken') || '';
@@ -78,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let adminsData = [];
   const selectedAdminIds = new Set();
 
-  // Modals
   const viewModal = document.getElementById('viewModal');
   const closeViewBtn = document.getElementById('closeView');
   const viewBody = document.getElementById('viewBody');
@@ -93,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const editDate = document.getElementById('editDate');
   const editDescription = document.getElementById('editDescription');
 
-  // Create modal elements
   const createModal = document.getElementById('createModal');
   const closeCreateBtn = document.getElementById('closeCreate');
   const openCreateBtn = document.getElementById('openCreate');
@@ -105,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const createDate = document.getElementById('createDate');
   const createDescription = document.getElementById('createDescription');
 
-  // Delete confirm modal elements
   const deleteModal = document.getElementById('deleteModal');
   const closeDeleteBtn = document.getElementById('closeDelete');
   const cancelDeleteBtn = document.getElementById('cancelDelete');
@@ -142,14 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Backdrop click: pulse the modal content instead of closing (0.7s)
   const pulseModal = (modalEl) => {
     if (!modalEl) return;
     const content = modalEl.querySelector('.modal__content');
     if (!content) return;
-    // Restart animation if it's already running
     content.classList.remove('modal__content--pulse');
-    void content.offsetWidth; // reflow to reset animation
+    void content.offsetWidth;
     content.classList.add('modal__content--pulse');
     setTimeout(() => {
       content.classList.remove('modal__content--pulse');
@@ -290,7 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!value) return '';
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return '';
-    // yyyy-mm-dd
     const yyyy = d.getFullYear();
     const mm = `${d.getMonth() + 1}`.padStart(2, '0');
     const dd = `${d.getDate()}`.padStart(2, '0');
@@ -750,7 +743,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial load with auth verification
   ensureAuth()
     .then(async () => {
       try { document.documentElement.style.visibility = 'visible'; } catch {}

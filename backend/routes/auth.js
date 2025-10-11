@@ -8,11 +8,9 @@ const router = express.Router();
 const signToken = (user) => {
   const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
   const payload = { sub: String(user._id), email: user.email };
-  // 7 days expiry
   return jwt.sign(payload, secret, { expiresIn: '7d' });
 };
 
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
     const { email, password, lastName, firstName, middleName = '', birthDate, gender, phone } = req.body;
@@ -127,7 +125,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/auth/verify
 router.get('/verify', (req, res) => {
   try {
     const auth = req.headers.authorization || '';

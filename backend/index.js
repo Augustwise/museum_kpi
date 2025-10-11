@@ -11,26 +11,21 @@ const usersRoutes = require('./routes/users');
 async function createApp() {
   const app = express();
 
-  // No CORS needed when frontend and backend share the same origin
   app.use(express.json());
 
-  // Health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
   });
 
-  // API routes
   app.use('/api/auth', authRoutes);
   app.use('/api/expos', exposRoutes);
   app.use('/api/users', usersRoutes);
 
-  // Frontend integration
   const isProd = process.env.NODE_ENV === 'production';
   const rootDir = path.resolve(__dirname, '..');
   const distPath = path.resolve(rootDir, 'dist');
 
   if (!isProd) {
-    // Vite dev server in middleware mode for a single unified server
     const { createServer } = await import('vite');
     const vite = await createServer({
       configFile: path.resolve(rootDir, 'vite.config.mjs'),
@@ -39,10 +34,8 @@ async function createApp() {
     });
     app.use(vite.middlewares);
   } else {
-    // Serve built frontend in production
     app.use(express.static(distPath));
 
-    // Serve existing files directly; otherwise fall back to index.html (SPA)
     app.get('*', (req, res) => {
       const candidate = path.join(distPath, req.path);
       try {
