@@ -1,74 +1,112 @@
 require('dotenv').config();
+
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const mongoose = require('mongoose');
 
 const authRoutes = require('./routes/auth');
-const exposRoutes = require('./routes/expos');
-const usersRoutes = require('./routes/users');
+const expoRoutes = require('./routes/expos');
+const userRoutes = require('./routes/users');
 
+/**
+ * Creates and configures a brand new Express application instance.
+ * Everything related to middleware and routing lives in this function so it is
+ * easy to see the order in which features are enabled.
+ */
 async function createApp() {
   const app = express();
 
+  // Parse JSON bodies. Without this, req.body would be undefined for JSON requests.
   app.use(express.json());
 
-  app.get('/api/health', (req, res) => {
+  // A tiny health check endpoint that front-ends or monitoring tools can call.
+  app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
 
+  // Attach the API routers.
   app.use('/api/auth', authRoutes);
-  app.use('/api/expos', exposRoutes);
-  app.use('/api/users', usersRoutes);
+  app.use('/api/expos', expoRoutes);
+  app.use('/api/users', userRoutes);
 
-  const isProd = process.env.NODE_ENV === 'production';
-  const rootDir = path.resolve(__dirname, '..');
-  const distPath = path.resolve(rootDir, 'dist');
-
-  if (!isProd) {
-    const { createServer } = await import('vite');
-    const vite = await createServer({
-      configFile: path.resolve(rootDir, 'vite.config.mjs'),
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(distPath));
-
-    app.get('*', (req, res) => {
-      const candidate = path.join(distPath, req.path);
-      try {
-        if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
-          return res.sendFile(candidate);
-        }
-      } catch {}
-      return res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
+  await attachFrontend(app);
 
   return app;
 }
 
-const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI;
-const DB_NAME = process.env.DB_NAME || 'museum';
+/**
+ * Serves the front-end application. In development we hand off to Vite so that
+ * hot reloading keeps working, while in production we simply serve the built
+ * files from the dist/ directory.
+ */
+async function attachFrontend(app) {
+  const projectRoot = path.resolve(__dirname, '..');
+  const distDir = path.join(projectRoot, 'dist');
+  const runningInProduction = process.env.NODE_ENV === 'production';
 
-if (!MONGODB_URI) {
-  console.error('Missing MONGODB_URI in .env');
-  process.exit(1);
+  if (!runningInProduction) {
+    // Lazy import keeps Vite out of production bundles.
+    const { createServer } = await import('vite');
+    const vite = await createServer({
+      configFile: path.join(projectRoot, 'vite.config.mjs'),
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+    return;
+  }
+
+  // Serve static files that were produced by `npm run build`.
+  app.use(express.static(distDir));
+
+  // Any other route should respond with index.html so the SPA router works.
+  app.get('*', (req, res) => {
+    const requestedPath = path.join(distDir, req.path);
+
+    try {
+      if (fs.existsSync(requestedPath) && fs.statSync(requestedPath).isFile()) {
+        return res.sendFile(requestedPath);
+      }
+    } catch (error) {
+      console.warn('Failed to check requested file:', error);
+    }
+
+    return res.sendFile(path.join(distDir, 'index.html'));
+  });
 }
 
-mongoose
-  .connect(MONGODB_URI, { dbName: DB_NAME })
-  .then(async () => {
-    console.log(`Connected to MongoDB (db: ${DB_NAME})`);
+/**
+ * Connects to MongoDB using the environment variables supplied in .env.
+ * A helpful message is logged if the connection string is missing so that
+ * beginners immediately know what went wrong.
+ */
+async function connectToDatabase() {
+  const connectionString = process.env.MONGODB_URI;
+  const databaseName = process.env.DB_NAME || 'museum';
+
+  if (!connectionString) {
+    throw new Error('Missing MONGODB_URI in the environment variables.');
+  }
+
+  await mongoose.connect(connectionString, { dbName: databaseName });
+  console.log(`Connected to MongoDB (database: ${databaseName})`);
+}
+
+async function startServer() {
+  try {
+    await connectToDatabase();
+
     const app = await createApp();
-    app.listen(PORT, () => {
-      console.log(`Server listening on http://localhost:${PORT}`);
+    const port = Number(process.env.PORT) || 3000;
+
+    app.listen(port, () => {
+      console.log(`Server listening on http://localhost:${port}`);
     });
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
+  } catch (error) {
+    console.error('Failed to start the server:', error);
     process.exit(1);
-  });
+  }
+}
+
+startServer();

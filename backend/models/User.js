@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 
+/**
+ * User schema kept intentionally simple so beginners can understand what each
+ * field represents. Only a handful of basic constraints are used.
+ */
 const UserSchema = new mongoose.Schema(
   {
     email: {
@@ -7,23 +11,41 @@ const UserSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
-      index: true,
       trim: true,
     },
     passwordHash: {
       type: String,
       required: true,
     },
-    lastName: { type: String, required: true, trim: true },
-    firstName: { type: String, required: true, trim: true },
-    middleName: { type: String, trim: true, default: '' },
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    middleName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     gender: {
       type: String,
-      enum: ['male', 'female'],
-      required: false,
+      enum: ['male', 'female', 'other'],
+      default: null,
     },
-    birthDate: { type: Date, required: true },
-    phone: { type: String, required: true, trim: true },
+    birthDate: {
+      type: Date,
+      default: null,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 );

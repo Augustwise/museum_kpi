@@ -1,12 +1,15 @@
 const mongoose = require('mongoose');
 
+/**
+ * Minimal schema for an exhibition ("expo"). Keeping the shape narrow makes it
+ * easy to seed example data for workshops or demos.
+ */
 const ExpoSchema = new mongoose.Schema(
   {
     expoId: {
       type: String,
       required: true,
       unique: true,
-      index: true,
       trim: true,
     },
     title: {
@@ -21,13 +24,11 @@ const ExpoSchema = new mongoose.Schema(
     },
     author: {
       type: String,
-      required: false,
       trim: true,
       default: '',
     },
     photoUrl: {
       type: String,
-      required: false,
       trim: true,
       default: '',
     },

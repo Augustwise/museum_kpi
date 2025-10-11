@@ -1,51 +1,72 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const auth = require('../middleware/auth');
+const authenticate = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(auth);
+// Protect every route under /api/users.
+router.use(authenticate);
 
-router.get('/', async (req, res) => {
+function summarizeUser(user) {
+  return {
+    id: String(user._id),
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    middleName: user.middleName || '',
+    gender: user.gender || null,
+    createdAt: user.createdAt,
+  };
+}
+
+/**
+ * GET /api/users
+ * Returns a simple list of users for the admin table.
+ */
+router.get('/', async (_req, res) => {
   try {
-    const users = await User.find({}).sort({ createdAt: -1 });
-    const normalized = users.map((user) => ({
-      id: user._id.toString(),
-      email: user.email,
-      lastName: user.lastName,
-      firstName: user.firstName,
-      middleName: user.middleName || '',
-      gender: user.gender || null,
-      createdAt: user.createdAt,
-    }));
-
-    return res.json(normalized);
-  } catch (err) {
-    console.error('List admins error:', err);
-    return res.status(500).json({ message: 'Помилка сервера' });
+    const users = await User.find().sort({ createdAt: -1 });
+    const simplifiedUsers = users.map(summarizeUser);
+    return res.json(simplifiedUsers);
+  } catch (error) {
+    console.error('Failed to list users:', error);
+    return res.status(500).json({ message: 'Server error while fetching users.' });
   }
 });
 
+// Normalizes and validates an array of ids supplied by the client.
+function normalizeIds(rawIds) {
+  if (!Array.isArray(rawIds)) {
+    return [];
+  }
+
+  return rawIds
+    .map((value) => String(value ?? ''))
+    .filter((value) => value && mongoose.Types.ObjectId.isValid(value));
+}
+
+/**
+ * DELETE /api/users
+ * Deletes the users whose ids are supplied in the request body.
+ */
 router.delete('/', async (req, res) => {
   try {
-    const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
-    const validIds = ids
-      .map((id) => (typeof id === 'string' || typeof id === 'number' ? String(id) : null))
-      .filter((id) => id && mongoose.Types.ObjectId.isValid(id));
+    const validIds = normalizeIds(req.body?.ids);
 
     if (!validIds.length) {
-      return res.status(400).json({ message: 'Немає користувачів для видалення' });
+      return res.status(400).json({ message: 'Please provide at least one valid user id.' });
     }
 
-    const result = await User.deleteMany({ _id: { $in: validIds } });
+    const deletionResult = await User.deleteMany({ _id: { $in: validIds } });
+
     return res.json({
-      message: 'Користувачів видалено',
-      deletedCount: result?.deletedCount || 0,
+      message: 'Users deleted successfully.',
+      deletedCount: deletionResult.deletedCount || 0,
     });
-  } catch (err) {
-    console.error('Delete admins error:', err);
-    return res.status(500).json({ message: 'Помилка сервера' });
+  } catch (error) {
+    console.error('Failed to delete users:', error);
+    return res.status(500).json({ message: 'Server error while deleting users.' });
   }
 });
 
