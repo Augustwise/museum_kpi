@@ -1,117 +1,167 @@
 const express = require('express');
 const Expo = require('../models/Expo');
-const auth = require('../middleware/auth');
+const authenticate = require('../middleware/auth');
 
 const router = express.Router();
-router.use(auth);
 
-// GET /api/expos
-router.get('/', async (req, res) => {
+// Apply authentication once for the whole router.
+router.use(authenticate);
+
+const REQUIRED_EXPO_FIELDS = ['expoId', 'title', 'description', 'date'];
+const MUTABLE_FIELDS = ['title', 'description', 'date', 'author', 'photoUrl'];
+
+function toCleanString(value) {
+  return String(value ?? '').trim();
+}
+
+function parseDate(value) {
+  const parsedDate = new Date(value);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+}
+
+// Converts raw request values into neatly trimmed strings and dates.
+function readExpoPayload(body = {}) {
+  const normalized = {
+    expoId: toCleanString(body.expoId),
+    title: toCleanString(body.title),
+    description: toCleanString(body.description),
+    author: toCleanString(body.author),
+    photoUrl: toCleanString(body.photoUrl),
+    date: parseDate(body.date),
+  };
+
+  return normalized;
+}
+
+// Builds an update object that only includes fields we allow to change.
+function buildExpoUpdate(body = {}) {
+  const updates = {};
+
+  for (const field of MUTABLE_FIELDS) {
+    if (body[field] === undefined) continue;
+
+    updates[field] = field === 'date' ? parseDate(body[field]) : toCleanString(body[field]);
+  }
+
+  return updates;
+}
+
+/**
+ * GET /api/expos
+ * Returns every expo sorted by date.
+ */
+router.get('/', async (_req, res) => {
   try {
-    const expos = await Expo.find({}).sort({ date: 1 });
-    res.json(expos);
-  } catch (err) {
-    console.error('List expos error:', err);
-    res.status(500).json({ message: 'Помилка сервера' });
+    const expos = await Expo.find().sort({ date: 1 });
+    return res.json(expos);
+  } catch (error) {
+    console.error('Failed to list expos:', error);
+    return res.status(500).json({ message: 'Server error while fetching expos.' });
   }
 });
 
-// GET /api/expos/:expoId
-// Get expo by business key "expoId"
+/**
+ * GET /api/expos/:expoId
+ * Finds an expo by its human-friendly expoId.
+ */
 router.get('/:expoId', async (req, res) => {
   try {
-    const { expoId } = req.params;
-    const expo = await Expo.findOne({ expoId: String(expoId).trim() });
+    const expoId = toCleanString(req.params.expoId);
+    const expo = await Expo.findOne({ expoId });
+
     if (!expo) {
-      return res.status(404).json({ message: 'Виставку не знайдено' });
+      return res.status(404).json({ message: 'Expo not found.' });
     }
-    res.json(expo);
-  } catch (err) {
-    console.error('Get expo error:', err);
-    res.status(500).json({ message: 'Помилка сервера' });
+
+    return res.json(expo);
+  } catch (error) {
+    console.error('Failed to read expo:', error);
+    return res.status(500).json({ message: 'Server error while fetching expo.' });
   }
 });
 
-// POST /api/expos
-// Create new expo
+/**
+ * POST /api/expos
+ * Creates a new expo from the provided payload.
+ */
 router.post('/', async (req, res) => {
   try {
-    const { expoId, title, description, date, author = '', photoUrl = '' } = req.body;
+    const payload = readExpoPayload(req.body);
 
-    if (!expoId || !title || !description || !date) {
-      return res.status(400).json({ message: 'Вкажіть назву, опис та дату' });
-    }
-
-    const exists = await Expo.findOne({ expoId: String(expoId).trim() });
-    if (exists) {
-      return res.status(409).json({ message: 'Виставка з таким expoId вже існує' });
-    }
-
-    const expo = new Expo({
-      expoId: String(expoId).trim(),
-      title: String(title).trim(),
-      description: String(description).trim(),
-      author: String(author || '').trim(),
-      photoUrl: String(photoUrl || '').trim(),
-      date: new Date(date),
-    });
-
-    await expo.save();
-    res.status(201).json({ message: 'Виставку створено', expo });
-  } catch (err) {
-    console.error('Create expo error:', err);
-    res.status(500).json({ message: 'Помилка сервера' });
-  }
-});
-
-// PUT /api/expos/:expoId
-// Update expo by business key "expoId"
-router.put('/:expoId', async (req, res) => {
-  try {
-    const { expoId } = req.params;
-    const updates = {};
-    const allowed = ['title', 'description', 'date', 'author', 'photoUrl'];
-
-    for (const key of allowed) {
-      if (req.body[key] !== undefined) {
-        if (key === 'date') {
-          updates[key] = new Date(req.body[key]);
-        } else {
-          updates[key] = String(req.body[key]).trim();
-        }
+    for (const field of REQUIRED_EXPO_FIELDS) {
+      if (!payload[field]) {
+        return res.status(400).json({
+          message: 'Please provide expoId, title, description and date for the new expo.',
+        });
       }
     }
 
-    const updated = await Expo.findOneAndUpdate(
-      { expoId: String(expoId).trim() },
+    if (!payload.date) {
+      return res.status(400).json({ message: 'The provided date is not valid.' });
+    }
+
+    const existingExpo = await Expo.findOne({ expoId: payload.expoId });
+    if (existingExpo) {
+      return res.status(409).json({ message: 'An expo with this expoId already exists.' });
+    }
+
+    const expo = new Expo(payload);
+    await expo.save();
+
+    return res.status(201).json({ message: 'Expo created successfully.', expo });
+  } catch (error) {
+    console.error('Failed to create expo:', error);
+    return res.status(500).json({ message: 'Server error while creating expo.' });
+  }
+});
+
+/**
+ * PUT /api/expos/:expoId
+ * Updates selected fields of an expo.
+ */
+router.put('/:expoId', async (req, res) => {
+  try {
+    const expoId = toCleanString(req.params.expoId);
+    const updates = buildExpoUpdate(req.body);
+
+    if (updates.date === null) {
+      return res.status(400).json({ message: 'The provided date is not valid.' });
+    }
+
+    const updatedExpo = await Expo.findOneAndUpdate(
+      { expoId },
       { $set: updates },
       { new: true }
     );
 
-    if (!updated) {
-      return res.status(404).json({ message: 'Виставку не знайдено' });
+    if (!updatedExpo) {
+      return res.status(404).json({ message: 'Expo not found.' });
     }
 
-    res.json({ message: 'Виставку оновлено', expo: updated });
-  } catch (err) {
-    console.error('Update expo error:', err);
-    res.status(500).json({ message: 'Помилка сервера' });
+    return res.json({ message: 'Expo updated successfully.', expo: updatedExpo });
+  } catch (error) {
+    console.error('Failed to update expo:', error);
+    return res.status(500).json({ message: 'Server error while updating expo.' });
   }
 });
 
-// DELETE /api/expos/:expoId
-// Delete expo by business key "expoId"
+/**
+ * DELETE /api/expos/:expoId
+ * Deletes an expo entirely.
+ */
 router.delete('/:expoId', async (req, res) => {
   try {
-    const { expoId } = req.params;
-    const deleted = await Expo.findOneAndDelete({ expoId: String(expoId).trim() });
-    if (!deleted) {
-      return res.status(404).json({ message: 'Виставку не знайдено' });
+    const expoId = toCleanString(req.params.expoId);
+    const deletedExpo = await Expo.findOneAndDelete({ expoId });
+
+    if (!deletedExpo) {
+      return res.status(404).json({ message: 'Expo not found.' });
     }
-    res.json({ message: 'Виставку видалено' });
-  } catch (err) {
-    console.error('Delete expo error:', err);
-    res.status(500).json({ message: 'Помилка сервера' });
+
+    return res.json({ message: 'Expo deleted successfully.' });
+  } catch (error) {
+    console.error('Failed to delete expo:', error);
+    return res.status(500).json({ message: 'Server error while deleting expo.' });
   }
 });
 
