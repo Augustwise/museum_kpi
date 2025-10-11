@@ -28,5 +28,10 @@
 
 ## Development
 
+- Main command: `npm start`
+
+
+
+
 - Run the API server: `npm run dev`
 - Build the frontend: `npm run build`
