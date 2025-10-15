@@ -1,5 +1,11 @@
 const express = require('express');
-const ExpoModel = require('../models/expoModel');
+const {
+  selectAllExpos,
+  selectExpoByExpoId,
+  insertExpo,
+  updateExpoByExpoId,
+  deleteExpoByExpoId,
+} = require('../models/expoModel');
 const authenticate = require('../middleware/auth');
 
 const router = express.Router();
@@ -52,7 +58,7 @@ function buildExpoUpdate(body = {}) {
  */
 router.get('/', async (_req, res) => {
   try {
-    const expos = await ExpoModel.listExpos();
+    const expos = await selectAllExpos();
     return res.json(expos);
   } catch (error) {
     console.error('Failed to list expos:', error);
@@ -67,7 +73,7 @@ router.get('/', async (_req, res) => {
 router.get('/:expoId', async (req, res) => {
   try {
     const expoId = toCleanString(req.params.expoId);
-    const expo = await ExpoModel.getExpoByExpoId(expoId);
+    const expo = await selectExpoByExpoId(expoId);
 
     if (!expo) {
       return res.status(404).json({ message: 'Expo not found.' });
@@ -100,12 +106,12 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'The provided date is not valid.' });
     }
 
-    const existingExpo = await ExpoModel.getExpoByExpoId(payload.expoId);
+    const existingExpo = await selectExpoByExpoId(payload.expoId);
     if (existingExpo) {
       return res.status(409).json({ message: 'An expo with this expoId already exists.' });
     }
 
-    const expo = await ExpoModel.createExpo(payload);
+    const expo = await insertExpo(payload);
 
     return res.status(201).json({ message: 'Expo created successfully.', expo });
   } catch (error) {
@@ -127,7 +133,7 @@ router.put('/:expoId', async (req, res) => {
       return res.status(400).json({ message: 'The provided date is not valid.' });
     }
 
-    const updatedExpo = await ExpoModel.updateExpoByExpoId(expoId, updates);
+    const updatedExpo = await updateExpoByExpoId(expoId, updates);
 
     if (!updatedExpo) {
       return res.status(404).json({ message: 'Expo not found.' });
@@ -147,7 +153,7 @@ router.put('/:expoId', async (req, res) => {
 router.delete('/:expoId', async (req, res) => {
   try {
     const expoId = toCleanString(req.params.expoId);
-    const deleted = await ExpoModel.deleteExpoByExpoId(expoId);
+    const deleted = await deleteExpoByExpoId(expoId);
 
     if (!deleted) {
       return res.status(404).json({ message: 'Expo not found.' });

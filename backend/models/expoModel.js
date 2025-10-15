@@ -22,17 +22,17 @@ function mapExpoRow(row) {
   };
 }
 
-async function listExpos() {
+async function selectAllExpos() {
   const [rows] = await pool.query('SELECT * FROM expos ORDER BY date ASC');
   return rows.map(mapExpoRow);
 }
 
-async function getExpoByExpoId(expoId) {
+async function selectExpoByExpoId(expoId) {
   const [rows] = await pool.query('SELECT * FROM expos WHERE expo_id = ? LIMIT 1', [expoId]);
   return mapExpoRow(rows[0]);
 }
 
-async function createExpo({ expoId, title, description, author, photoUrl, date }) {
+async function insertExpo({ expoId, title, description, author, photoUrl, date }) {
   const now = new Date();
   const [result] = await pool.query(
     `INSERT INTO expos (expo_id, title, description, author, photo_url, date, created_at, updated_at)
@@ -40,8 +40,7 @@ async function createExpo({ expoId, title, description, author, photoUrl, date }
     [expoId, title, description, author || '', photoUrl || '', date, now, now]
   );
 
-  const [rows] = await pool.query('SELECT * FROM expos WHERE id = ? LIMIT 1', [result.insertId]);
-  return mapExpoRow(rows[0]);
+  return selectExpoByExpoId(expoId);
 }
 
 async function updateExpoByExpoId(expoId, updates = {}) {
@@ -63,7 +62,7 @@ async function updateExpoByExpoId(expoId, updates = {}) {
   }
 
   if (!setClauses.length) {
-    return getExpoByExpoId(expoId);
+    return selectExpoByExpoId(expoId);
   }
 
   setClauses.push('updated_at = ?');
@@ -77,7 +76,7 @@ async function updateExpoByExpoId(expoId, updates = {}) {
     return null;
   }
 
-  return getExpoByExpoId(expoId);
+  return selectExpoByExpoId(expoId);
 }
 
 async function deleteExpoByExpoId(expoId) {
@@ -86,9 +85,13 @@ async function deleteExpoByExpoId(expoId) {
 }
 
 module.exports = {
-  listExpos,
-  getExpoByExpoId,
-  createExpo,
+  selectAllExpos,
+  selectExpoByExpoId,
+  insertExpo,
   updateExpoByExpoId,
   deleteExpoByExpoId,
+  // Legacy aliases kept for compatibility where needed.
+  listExpos: selectAllExpos,
+  getExpoByExpoId: selectExpoByExpoId,
+  createExpo: insertExpo,
 };

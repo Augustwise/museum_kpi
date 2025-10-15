@@ -24,17 +24,17 @@ function mapUserRow(row) {
   };
 }
 
-async function getUserByEmail(email) {
+async function findUserByEmail(email) {
   const [rows] = await pool.query('SELECT * FROM users WHERE email = ? LIMIT 1', [email]);
   return mapUserRow(rows[0]);
 }
 
-async function getUserById(id) {
+async function findUserById(id) {
   const [rows] = await pool.query('SELECT * FROM users WHERE id = ? LIMIT 1', [id]);
   return mapUserRow(rows[0]);
 }
 
-async function createUser({
+async function insertUser({
   email,
   passwordHash,
   firstName,
@@ -51,10 +51,10 @@ async function createUser({
     [email, passwordHash, firstName, lastName, middleName || '', gender || null, birthDate || null, phone || '', now, now]
   );
 
-  return getUserById(result.insertId);
+  return findUserById(result.insertId);
 }
 
-async function listUsers() {
+async function selectAdminsOrdered() {
   const [rows] = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
   return rows.map(mapUserRow);
 }
@@ -64,16 +64,15 @@ async function deleteUsersByIds(ids = []) {
     return { deletedCount: 0 };
   }
 
-  const placeholders = ids.map(() => '?').join(', ');
-  const [result] = await pool.query(`DELETE FROM users WHERE id IN (${placeholders})`, ids);
+  const [result] = await pool.query('DELETE FROM users WHERE id IN (?)', [ids]);
   return { deletedCount: result.affectedRows || 0 };
 }
 
 module.exports = {
   mapUserRow,
-  getUserByEmail,
-  getUserById,
-  createUser,
-  listUsers,
+  findUserByEmail,
+  findUserById,
+  insertUser,
+  selectAdminsOrdered,
   deleteUsersByIds,
 };
