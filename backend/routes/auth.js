@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const UserModel = require('../models/userModel');
 
 const router = express.Router();
 
@@ -29,7 +29,7 @@ function extractTokenFromHeader(headerValue = '') {
 
 function buildUserResponse(user) {
   return {
-    id: String(user._id),
+    id: String(user.id),
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
@@ -42,7 +42,7 @@ function buildUserResponse(user) {
 
 function signToken(user) {
   const secret = process.env.JWT_SECRET || 'dev_secret_change_me';
-  const payload = { id: String(user._id), email: user.email };
+  const payload = { id: String(user.id), email: user.email };
   return jwt.sign(payload, secret, { expiresIn: '7d' });
 }
 
@@ -77,14 +77,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Gender must be either "male" or "female".' });
     }
 
-    const existingUser = await User.findOne({ email: registrationInput.email });
+    const existingUser = await UserModel.getUserByEmail(registrationInput.email);
     if (existingUser) {
       return res.status(409).json({ message: 'A user with this email already exists.' });
     }
 
     const passwordHash = await bcrypt.hash(registrationInput.password, 10);
 
-    const user = new User({
+    const user = await UserModel.createUser({
       email: registrationInput.email,
       passwordHash,
       firstName: registrationInput.firstName,
@@ -94,8 +94,6 @@ router.post('/register', async (req, res) => {
       birthDate: registrationInput.birthDate,
       phone: registrationInput.phone,
     });
-
-    await user.save();
 
     const token = signToken(user);
 
@@ -121,7 +119,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Please provide both email and password.' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await UserModel.getUserByEmail(email);
     if (!user) {
       return res.status(401).json({ message: 'Incorrect email or password.' });
     }
