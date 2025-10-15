@@ -3,7 +3,8 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
-const mongoose = require('mongoose');
+
+const { pool, connectionInfo } = require('./db');
 
 const authRoutes = require('./routes/auth');
 const expoRoutes = require('./routes/expos');
@@ -76,26 +77,13 @@ async function attachFrontend(app) {
   });
 }
 
-/**
- * Connects to MongoDB using the environment variables supplied in .env.
- * A helpful message is logged if the connection string is missing so that
- * beginners immediately know what went wrong.
- */
-async function connectToDatabase() {
-  const connectionString = process.env.MONGODB_URI;
-  const databaseName = process.env.DB_NAME || 'museum';
-
-  if (!connectionString) {
-    throw new Error('Missing MONGODB_URI in the environment variables.');
-  }
-
-  await mongoose.connect(connectionString, { dbName: databaseName });
-  console.log(`Connected to MongoDB (database: ${databaseName})`);
-}
-
 async function startServer() {
   try {
-    await connectToDatabase();
+    await pool.query('SELECT 1');
+    const info = connectionInfo();
+    console.log(
+      `Connected to MySQL ${info.host}:${info.port}/${info.database} (ssl-mode=${info.sslMode})`
+    );
 
     const app = await createApp();
     const port = Number(process.env.PORT) || 3000;
