@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const UserModel = require('../models/userModel');
+const { findUserByEmail, insertUser } = require('../models/userModel');
 
 const router = express.Router();
 
@@ -77,14 +77,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Gender must be either "male" or "female".' });
     }
 
-    const existingUser = await UserModel.getUserByEmail(registrationInput.email);
+    const existingUser = await findUserByEmail(registrationInput.email);
     if (existingUser) {
       return res.status(409).json({ message: 'A user with this email already exists.' });
     }
 
     const passwordHash = await bcrypt.hash(registrationInput.password, 10);
 
-    const user = await UserModel.createUser({
+    const user = await insertUser({
       email: registrationInput.email,
       passwordHash,
       firstName: registrationInput.firstName,
@@ -119,7 +119,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Please provide both email and password.' });
     }
 
-    const user = await UserModel.getUserByEmail(email);
+    const user = await findUserByEmail(email);
     if (!user) {
       return res.status(401).json({ message: 'Incorrect email or password.' });
     }

@@ -1,5 +1,5 @@
 const express = require('express');
-const UserModel = require('../models/userModel');
+const { selectAdminsOrdered, deleteUsersByIds } = require('../models/userModel');
 const authenticate = require('../middleware/auth');
 
 const router = express.Router();
@@ -25,7 +25,7 @@ function summarizeUser(user) {
  */
 router.get('/', async (_req, res) => {
   try {
-    const users = await UserModel.listUsers();
+    const users = await selectAdminsOrdered();
     const simplifiedUsers = users.map(summarizeUser);
     return res.json(simplifiedUsers);
   } catch (error) {
@@ -57,7 +57,7 @@ router.delete('/', async (req, res) => {
       return res.status(400).json({ message: 'Please provide at least one valid user id.' });
     }
 
-    const deletionResult = await UserModel.deleteUsersByIds(validIds);
+    const deletionResult = await deleteUsersByIds(validIds);
 
     return res.json({
       message: 'Users deleted successfully.',
