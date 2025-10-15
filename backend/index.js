@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const path = require('path');
 const fs = require('fs');
+const fsPromises = fs.promises;
 const express = require('express');
 
 const { pool, connectionInfo } = require('./db');
@@ -77,13 +78,39 @@ async function attachFrontend(app) {
   });
 }
 
+async function ensureDatabaseSchema() {
+  const schemaPath = path.join(__dirname, 'database', 'schema.sql');
+
+  let schemaSql;
+  try {
+    schemaSql = await fsPromises.readFile(schemaPath, 'utf8');
+  } catch (error) {
+    throw new Error(`Failed to read database schema at ${schemaPath}: ${error.message}`);
+  }
+
+  const statements = schemaSql
+    .split(/;[\s\r\n]*/)
+    .map((statement) => statement.trim())
+    .filter(Boolean);
+
+  for (const statement of statements) {
+    try {
+      await pool.query(statement);
+    } catch (error) {
+      throw new Error(`Failed to execute schema statement: ${error.message}`);
+    }
+  }
+}
+
 async function startServer() {
   try {
     await pool.query('SELECT 1');
+    await ensureDatabaseSchema();
     const info = connectionInfo();
     console.log(
       `Connected to MySQL ${info.host}:${info.port}/${info.database} (ssl-mode=${info.sslMode})`
     );
+    console.log('Database schema verified.');
 
     const app = await createApp();
     const port = Number(process.env.PORT) || 3000;
