@@ -5,8 +5,8 @@ each folder or file is for so you can find the right place to work.
 
 ## Backend (`backend/`)
 
-This folder contains the Express and MongoDB server. The entry point is
-`index.js`. It loads environment variables, connects to MongoDB, and boots the
+This folder contains the Express server backed by MySQL. The entry point is
+`index.js`. It loads environment variables, connects to the database pool, and boots the
 Express app. The file registers a lightweight health check with
 `app.get('/api/health', ...)` so tooling can confirm the service is online, and
 it mounts the route modules under `/api/auth`, `/api/expos`, and `/api/users`.
@@ -24,14 +24,15 @@ return res.status(200).json({ message: 'Успішний вхід', token, user:
 ```
 
 `routes/expos.js` shows how authenticated routes work. It applies the
-authentication middleware, then uses the `Expo` model to read or mutate data.
-For instance, `router.post('/')` checks for a duplicate `expoId`, constructs a
-new document, and saves it before replying with `201`.
+authentication middleware, then uses the expo model helpers to read or mutate
+data. For instance, `router.post('/')` checks for a duplicate `expoId`, inserts
+a new record, and replies with `201`.
 
-The data layer lives in `models/`. Each file defines a Mongoose schema and
-model. `models/User.js` enforces things like a unique, trimmed email and
-restricts `gender` to either `male` or `female`, while `models/Expo.js` (not
-shown here) describes the fields stored for exhibitions.
+The data layer lives in `models/`. Each module wraps SQL queries on top of the
+shared MySQL pool. `models/userModel.js` enforces things like a unique, trimmed
+email and restricts `gender` to either `male` or `female`, while
+`models/expoModel.js` describes the fields stored for exhibitions and returns
+objects shaped for the API.
 
 Reusable request helpers belong in `middleware/`. Currently `middleware/auth.js`
 parses the `Authorization` header, verifies the JWT (falling back to a sensible

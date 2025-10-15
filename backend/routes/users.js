@@ -1,6 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const User = require('../models/User');
+const UserModel = require('../models/userModel');
 const authenticate = require('../middleware/auth');
 
 const router = express.Router();
@@ -10,7 +9,7 @@ router.use(authenticate);
 
 function summarizeUser(user) {
   return {
-    id: String(user._id),
+    id: String(user.id),
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
@@ -26,7 +25,7 @@ function summarizeUser(user) {
  */
 router.get('/', async (_req, res) => {
   try {
-    const users = await User.find().sort({ createdAt: -1 });
+    const users = await UserModel.listUsers();
     const simplifiedUsers = users.map(summarizeUser);
     return res.json(simplifiedUsers);
   } catch (error) {
@@ -42,8 +41,8 @@ function normalizeIds(rawIds) {
   }
 
   return rawIds
-    .map((value) => String(value ?? ''))
-    .filter((value) => value && mongoose.Types.ObjectId.isValid(value));
+    .map((value) => Number.parseInt(String(value ?? '').trim(), 10))
+    .filter((value) => Number.isInteger(value) && value > 0);
 }
 
 /**
@@ -58,7 +57,7 @@ router.delete('/', async (req, res) => {
       return res.status(400).json({ message: 'Please provide at least one valid user id.' });
     }
 
-    const deletionResult = await User.deleteMany({ _id: { $in: validIds } });
+    const deletionResult = await UserModel.deleteUsersByIds(validIds);
 
     return res.json({
       message: 'Users deleted successfully.',
