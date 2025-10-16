@@ -53,7 +53,7 @@ async function attachFrontend(app) {
     const vite = await createServer({
       configFile: path.join(projectRoot, 'vite.config.mjs'),
       server: { middlewareMode: true },
-      appType: 'spa',
+      appType: 'mpa',
     });
     app.use(vite.middlewares);
     return;

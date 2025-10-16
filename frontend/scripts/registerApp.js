@@ -1,9 +1,14 @@
 import '../styles/main.scss';
-import { createApp } from 'vue';
 
 import AuthLayout from './components/AuthLayout.js';
 import AuthNotification from './components/AuthNotification.js';
 import RegisterForm from './components/RegisterForm.js';
+
+const { createApp } = window.Vue || {};
+
+if (!createApp) {
+  throw new Error('Vue is not loaded. Please ensure the Vue CDN script is included.');
+}
 
 const app = createApp({
   components: {
