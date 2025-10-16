@@ -5,7 +5,13 @@ const { findUserByEmail, insertUser } = require('../models/userModel');
 
 const router = express.Router();
 
-const REQUIRED_REGISTRATION_FIELDS = ['email', 'password', 'firstName', 'lastName', 'birthDate', 'phone'];
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\+380 \d{2} \d{3} \d{2} \d{2}$/;
+const NAME_REGEX = /^[A-Za-zА-Яа-яЁёІіЇїЄє'’\-\s]+$/u;
+const PASSWORD_MIN_LENGTH = 6;
+const NAME_MIN_LENGTH = 2;
+const EARLIEST_BIRTH_DATE = new Date('1900-01-01');
+const ALLOWED_GENDERS = new Set(['male', 'female']);
 
 /**
  * Utility helpers keep the route handlers short and descriptive.
@@ -21,6 +27,126 @@ function normalizeEmail(email) {
 function parseBirthDate(rawBirthDate) {
   const birthDate = new Date(rawBirthDate);
   return Number.isNaN(birthDate.getTime()) ? null : birthDate;
+}
+
+function normalizeGender(rawGender) {
+  const gender = toCleanString(rawGender).toLowerCase();
+  return ALLOWED_GENDERS.has(gender) ? gender : '';
+}
+
+function validateRegistrationBody(body = {}) {
+  const normalized = {
+    email: normalizeEmail(body.email),
+    password: toCleanString(body.password),
+    firstName: toCleanString(body.firstName),
+    lastName: toCleanString(body.lastName),
+    middleName: toCleanString(body.middleName),
+    gender: normalizeGender(body.gender),
+    birthDate: toCleanString(body.birthDate),
+    phone: toCleanString(body.phone),
+  };
+
+  const errors = {};
+
+  if (!normalized.email) {
+    errors.email = 'Email is required.';
+  } else if (!EMAIL_REGEX.test(normalized.email)) {
+    errors.email = 'Email must be valid.';
+  }
+
+  if (!normalized.password) {
+    errors.password = 'Password is required.';
+  } else if (normalized.password.length < PASSWORD_MIN_LENGTH) {
+    errors.password = `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`;
+  }
+
+  ['firstName', 'lastName'].forEach((field) => {
+    const value = normalized[field];
+    const label = field === 'firstName' ? 'First name' : 'Last name';
+    if (!value) {
+      errors[field] = `${label} is required.`;
+      return;
+    }
+    if (value.length < NAME_MIN_LENGTH) {
+      errors[field] = `${label} must be at least ${NAME_MIN_LENGTH} characters.`;
+      return;
+    }
+    if (!NAME_REGEX.test(value)) {
+      errors[field] = `${label} may only contain letters, apostrophes and hyphens.`;
+    }
+  });
+
+  if (normalized.middleName) {
+    if (normalized.middleName.length < NAME_MIN_LENGTH) {
+      errors.middleName = 'Middle name must be at least two characters.';
+    } else if (!NAME_REGEX.test(normalized.middleName)) {
+      errors.middleName = 'Middle name may only contain letters, apostrophes and hyphens.';
+    }
+  }
+
+  if (normalized.gender && !ALLOWED_GENDERS.has(normalized.gender)) {
+    errors.gender = 'Gender must be either "male" or "female" if provided.';
+  }
+
+  let parsedBirthDate = null;
+  if (!normalized.birthDate) {
+    errors.birthDate = 'Birth date is required.';
+  } else {
+    parsedBirthDate = parseBirthDate(normalized.birthDate);
+    if (!parsedBirthDate) {
+      errors.birthDate = 'Birth date must be a valid date.';
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (parsedBirthDate > today) {
+        errors.birthDate = 'Birth date cannot be in the future.';
+      } else if (parsedBirthDate < EARLIEST_BIRTH_DATE) {
+        errors.birthDate = 'Birth date must be after 1900-01-01.';
+      }
+    }
+  }
+
+  if (!normalized.phone) {
+    errors.phone = 'Phone number is required.';
+  } else if (!PHONE_REGEX.test(normalized.phone)) {
+    errors.phone = 'Phone number must match the pattern +380 00 000 00 00.';
+  }
+
+  const sanitized = {
+    email: normalized.email,
+    password: normalized.password,
+    firstName: normalized.firstName,
+    lastName: normalized.lastName,
+    middleName: normalized.middleName,
+    gender: normalized.gender || null,
+    birthDate: parsedBirthDate,
+    phone: normalized.phone,
+  };
+
+  return { errors, sanitized };
+}
+
+function validateLoginBody(body = {}) {
+  const normalized = {
+    email: normalizeEmail(body.email),
+    password: toCleanString(body.password),
+  };
+
+  const errors = {};
+
+  if (!normalized.email) {
+    errors.email = 'Email is required.';
+  } else if (!EMAIL_REGEX.test(normalized.email)) {
+    errors.email = 'Email must be valid.';
+  }
+
+  if (!normalized.password) {
+    errors.password = 'Password is required.';
+  } else if (normalized.password.length < PASSWORD_MIN_LENGTH) {
+    errors.password = `Password must be at least ${PASSWORD_MIN_LENGTH} characters long.`;
+  }
+
+  return { errors, sanitized: normalized };
 }
 
 function extractTokenFromHeader(headerValue = '') {
@@ -49,50 +175,34 @@ function signToken(user) {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const body = req.body || {};
+    const { errors, sanitized } = validateRegistrationBody(req.body || {});
 
-    // Gather and normalize every field we care about.
-    const registrationInput = {
-      email: normalizeEmail(body.email),
-      password: toCleanString(body.password),
-      firstName: toCleanString(body.firstName),
-      lastName: toCleanString(body.lastName),
-      middleName: toCleanString(body.middleName),
-      phone: toCleanString(body.phone),
-      gender: body.gender ? toCleanString(body.gender) : undefined,
-      birthDate: parseBirthDate(body.birthDate),
-    };
-
-    // Make sure the basics are present before we continue.
-    for (const fieldName of REQUIRED_REGISTRATION_FIELDS) {
-      if (!registrationInput[fieldName]) {
-        return res.status(400).json({
-          message: 'Please provide all required fields: email, password, first name, last name, birth date and phone.',
-        });
-      }
+    if (Object.keys(errors).length) {
+      return res.status(400).json({
+        message: 'Please correct the highlighted fields and try again.',
+        errors,
+      });
     }
 
-    const allowedGenders = ['male', 'female'];
-    if (registrationInput.gender && !allowedGenders.includes(registrationInput.gender)) {
-      return res.status(400).json({ message: 'Gender must be either "male" or "female".' });
-    }
-
-    const existingUser = await findUserByEmail(registrationInput.email);
+    const existingUser = await findUserByEmail(sanitized.email);
     if (existingUser) {
-      return res.status(409).json({ message: 'A user with this email already exists.' });
+      return res.status(409).json({
+        message: 'A user with this email already exists.',
+        errors: { email: 'This email is already registered.' },
+      });
     }
 
-    const passwordHash = await bcrypt.hash(registrationInput.password, 10);
+    const passwordHash = await bcrypt.hash(sanitized.password, 10);
 
     const user = await insertUser({
-      email: registrationInput.email,
+      email: sanitized.email,
       passwordHash,
-      firstName: registrationInput.firstName,
-      lastName: registrationInput.lastName,
-      middleName: registrationInput.middleName,
-      gender: registrationInput.gender,
-      birthDate: registrationInput.birthDate,
-      phone: registrationInput.phone,
+      firstName: sanitized.firstName,
+      lastName: sanitized.lastName,
+      middleName: sanitized.middleName,
+      gender: sanitized.gender,
+      birthDate: sanitized.birthDate,
+      phone: sanitized.phone,
     });
 
     const token = signToken(user);
@@ -111,20 +221,21 @@ router.post('/register', async (req, res) => {
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
-    const body = req.body || {};
-    const email = normalizeEmail(body.email);
-    const password = toCleanString(body.password);
+    const { errors, sanitized } = validateLoginBody(req.body || {});
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide both email and password.' });
+    if (Object.keys(errors).length) {
+      return res.status(400).json({
+        message: 'Please correct the highlighted fields and try again.',
+        errors,
+      });
     }
 
-    const user = await findUserByEmail(email);
+    const user = await findUserByEmail(sanitized.email);
     if (!user) {
       return res.status(401).json({ message: 'Incorrect email or password.' });
     }
 
-    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    const passwordMatches = await bcrypt.compare(sanitized.password, user.passwordHash);
     if (!passwordMatches) {
       return res.status(401).json({ message: 'Incorrect email or password.' });
     }

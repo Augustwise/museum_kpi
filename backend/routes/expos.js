@@ -13,8 +13,10 @@ const router = express.Router();
 // Apply authentication once for the whole router.
 router.use(authenticate);
 
-const REQUIRED_EXPO_FIELDS = ['expoId', 'title', 'description', 'date'];
-const MUTABLE_FIELDS = ['title', 'description', 'date', 'author', 'photoUrl'];
+const EXPO_ID_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const TITLE_MIN_LENGTH = 3;
+const DESCRIPTION_MIN_LENGTH = 10;
+const AUTHOR_MIN_LENGTH = 2;
 
 function toCleanString(value) {
   return String(value ?? '').trim();
@@ -25,31 +27,144 @@ function parseDate(value) {
   return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
 }
 
-// Converts raw request values into neatly trimmed strings and dates.
-function readExpoPayload(body = {}) {
+function validateExpoCreation(body = {}) {
   const normalized = {
     expoId: toCleanString(body.expoId),
     title: toCleanString(body.title),
     description: toCleanString(body.description),
     author: toCleanString(body.author),
     photoUrl: toCleanString(body.photoUrl),
-    date: parseDate(body.date),
+    date: toCleanString(body.date),
   };
 
-  return normalized;
-}
+  const errors = {};
 
-// Builds an update object that only includes fields we allow to change.
-function buildExpoUpdate(body = {}) {
-  const updates = {};
-
-  for (const field of MUTABLE_FIELDS) {
-    if (body[field] === undefined) continue;
-
-    updates[field] = field === 'date' ? parseDate(body[field]) : toCleanString(body[field]);
+  if (!normalized.expoId) {
+    errors.expoId = 'Expo id is required.';
+  } else if (!EXPO_ID_REGEX.test(normalized.expoId)) {
+    errors.expoId = 'Expo id may only contain lowercase letters, numbers and hyphens.';
   }
 
-  return updates;
+  if (!normalized.title) {
+    errors.title = 'Title is required.';
+  } else if (normalized.title.length < TITLE_MIN_LENGTH) {
+    errors.title = `Title must be at least ${TITLE_MIN_LENGTH} characters long.`;
+  }
+
+  if (!normalized.description) {
+    errors.description = 'Description is required.';
+  } else if (normalized.description.length < DESCRIPTION_MIN_LENGTH) {
+    errors.description = `Description must be at least ${DESCRIPTION_MIN_LENGTH} characters long.`;
+  }
+
+  let parsedDate = null;
+  if (!normalized.date) {
+    errors.date = 'Date is required.';
+  } else {
+    parsedDate = parseDate(normalized.date);
+    if (!parsedDate) {
+      errors.date = 'Date must be a valid date.';
+    }
+  }
+
+  if (normalized.author && normalized.author.length < AUTHOR_MIN_LENGTH) {
+    errors.author = 'Author must be at least two characters long.';
+  }
+
+  if (normalized.photoUrl) {
+    try {
+      const url = new URL(normalized.photoUrl);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        errors.photoUrl = 'Photo URL must start with http or https.';
+      }
+    } catch (error) {
+      errors.photoUrl = 'Photo URL must be a valid URL.';
+    }
+  }
+
+  const sanitized = {
+    expoId: normalized.expoId,
+    title: normalized.title,
+    description: normalized.description,
+    author: normalized.author,
+    photoUrl: normalized.photoUrl,
+    date: parsedDate,
+  };
+
+  return { errors, sanitized };
+}
+
+function validateExpoUpdate(body = {}) {
+  const normalized = {
+    title: body.title !== undefined ? toCleanString(body.title) : undefined,
+    description: body.description !== undefined ? toCleanString(body.description) : undefined,
+    author: body.author !== undefined ? toCleanString(body.author) : undefined,
+    photoUrl: body.photoUrl !== undefined ? toCleanString(body.photoUrl) : undefined,
+    date: body.date !== undefined ? toCleanString(body.date) : undefined,
+  };
+
+  const errors = {};
+  const updates = {};
+
+  if (normalized.title !== undefined) {
+    if (!normalized.title) {
+      errors.title = 'Title cannot be empty.';
+    } else if (normalized.title.length < TITLE_MIN_LENGTH) {
+      errors.title = `Title must be at least ${TITLE_MIN_LENGTH} characters long.`;
+    } else {
+      updates.title = normalized.title;
+    }
+  }
+
+  if (normalized.description !== undefined) {
+    if (!normalized.description) {
+      errors.description = 'Description cannot be empty.';
+    } else if (normalized.description.length < DESCRIPTION_MIN_LENGTH) {
+      errors.description = `Description must be at least ${DESCRIPTION_MIN_LENGTH} characters long.`;
+    } else {
+      updates.description = normalized.description;
+    }
+  }
+
+  if (normalized.author !== undefined) {
+    if (normalized.author && normalized.author.length < AUTHOR_MIN_LENGTH) {
+      errors.author = 'Author must be at least two characters long.';
+    } else {
+      updates.author = normalized.author || '';
+    }
+  }
+
+  if (normalized.photoUrl !== undefined) {
+    if (!normalized.photoUrl) {
+      updates.photoUrl = '';
+    } else {
+      try {
+        const url = new URL(normalized.photoUrl);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          errors.photoUrl = 'Photo URL must start with http or https.';
+        } else {
+          updates.photoUrl = normalized.photoUrl;
+        }
+      } catch (error) {
+        errors.photoUrl = 'Photo URL must be a valid URL.';
+      }
+    }
+  }
+
+  if (normalized.date !== undefined) {
+    if (!normalized.date) {
+      errors.date = 'Date cannot be empty.';
+    } else {
+      const parsedDate = parseDate(normalized.date);
+      if (!parsedDate) {
+        errors.date = 'Date must be a valid date.';
+      } else {
+        updates.date = parsedDate;
+      }
+    }
+  }
+
+  return { errors, updates };
 }
 
 /**
@@ -92,26 +207,24 @@ router.get('/:expoId', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const payload = readExpoPayload(req.body);
+    const { errors, sanitized } = validateExpoCreation(req.body || {});
 
-    for (const field of REQUIRED_EXPO_FIELDS) {
-      if (!payload[field]) {
-        return res.status(400).json({
-          message: 'Please provide expoId, title, description and date for the new expo.',
-        });
-      }
+    if (Object.keys(errors).length) {
+      return res.status(400).json({
+        message: 'Please correct the highlighted fields and try again.',
+        errors,
+      });
     }
 
-    if (!payload.date) {
-      return res.status(400).json({ message: 'The provided date is not valid.' });
-    }
-
-    const existingExpo = await selectExpoByExpoId(payload.expoId);
+    const existingExpo = await selectExpoByExpoId(sanitized.expoId);
     if (existingExpo) {
-      return res.status(409).json({ message: 'An expo with this expoId already exists.' });
+      return res.status(409).json({
+        message: 'An expo with this expoId already exists.',
+        errors: { expoId: 'This expo id is already in use.' },
+      });
     }
 
-    const expo = await insertExpo(payload);
+    const expo = await insertExpo(sanitized);
 
     return res.status(201).json({ message: 'Expo created successfully.', expo });
   } catch (error) {
@@ -127,10 +240,17 @@ router.post('/', async (req, res) => {
 router.put('/:expoId', async (req, res) => {
   try {
     const expoId = toCleanString(req.params.expoId);
-    const updates = buildExpoUpdate(req.body);
+    const { errors, updates } = validateExpoUpdate(req.body || {});
 
-    if (updates.date === null) {
-      return res.status(400).json({ message: 'The provided date is not valid.' });
+    if (Object.keys(errors).length) {
+      return res.status(400).json({
+        message: 'Please correct the highlighted fields and try again.',
+        errors,
+      });
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ message: 'Please provide at least one field to update.' });
     }
 
     const updatedExpo = await updateExpoByExpoId(expoId, updates);

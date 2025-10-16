@@ -23,10 +23,12 @@
       <form id="loginForm" class="auth-form" novalidate>
         <label class="auth-label">Email
           <input type="email" name="email" required autocomplete="email" class="auth-input" />
+          <p class="auth-error" data-error-for="email" aria-live="polite"></p>
         </label>
 
         <label class="auth-label">Пароль
           <input type="password" name="password" required minlength="6" autocomplete="current-password" class="auth-input" />
+          <p class="auth-error" data-error-for="password" aria-live="polite"></p>
         </label>
 
         <button type="submit" class="auth-submit">Увійти</button>

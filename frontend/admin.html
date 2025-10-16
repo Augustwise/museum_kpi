@@ -127,18 +127,23 @@
           <input type="hidden" name="expoId" id="editExpoId" />
           <label class="modal__label">Назва
             <input type="text" name="title" id="editTitle" required class="modal__input" />
+            <p class="modal__error" data-error-for="title" aria-live="polite"></p>
           </label>
           <label class="modal__label">Автор
             <input type="text" name="author" id="editAuthor" class="modal__input" />
+            <p class="modal__error" data-error-for="author" aria-live="polite"></p>
           </label>
           <label class="modal__label">Фото (URL)
             <input type="url" name="photoUrl" id="editPhotoUrl" class="modal__input" />
+            <p class="modal__error" data-error-for="photoUrl" aria-live="polite"></p>
           </label>
           <label class="modal__label">Дата
             <input type="date" name="date" id="editDate" required class="modal__input" />
+            <p class="modal__error" data-error-for="date" aria-live="polite"></p>
           </label>
           <label class="modal__label">Опис
             <textarea name="description" id="editDescription" rows="4" class="modal__input" style="height:auto; resize:vertical"></textarea>
+            <p class="modal__error" data-error-for="description" aria-live="polite"></p>
           </label>
           <button type="submit" class="modal__submit">Зберегти</button>
         </form>
@@ -153,18 +158,23 @@
         <form id="createForm" class="modal__form">
           <label class="modal__label">Назва
             <input type="text" name="title" id="createTitle" required class="modal__input" />
+            <p class="modal__error" data-error-for="title" aria-live="polite"></p>
           </label>
           <label class="modal__label">Автор
             <input type="text" name="author" id="createAuthor" class="modal__input" />
+            <p class="modal__error" data-error-for="author" aria-live="polite"></p>
           </label>
           <label class="modal__label">Фото (URL)
             <input type="url" name="photoUrl" id="createPhotoUrl" class="modal__input" />
+            <p class="modal__error" data-error-for="photoUrl" aria-live="polite"></p>
           </label>
           <label class="modal__label">Дата
             <input type="date" name="date" id="createDate" required class="modal__input" />
+            <p class="modal__error" data-error-for="date" aria-live="polite"></p>
           </label>
           <label class="modal__label">Опис
             <textarea name="description" id="createDescription" rows="4" class="modal__input" style="height:auto; resize:vertical"></textarea>
+            <p class="modal__error" data-error-for="description" aria-live="polite"></p>
           </label>
           <button type="submit" class="modal__submit">Створити</button>
         </form>
