@@ -1,0 +1,87 @@
+import '../styles/main.scss';
+import { createApp } from 'vue';
+
+import AuthLayout from './components/AuthLayout.js';
+import AuthNotification from './components/AuthNotification.js';
+import LoginForm from './components/LoginForm.js';
+
+const app = createApp({
+  components: {
+    AuthLayout,
+    AuthNotification,
+    LoginForm,
+  },
+  data() {
+    return {
+      notification: {
+        message: '',
+        type: 'success',
+        visible: false,
+        show: false,
+      },
+      hideTimeoutId: null,
+      cleanupTimeoutId: null,
+    };
+  },
+  methods: {
+    showNotification(message, type = 'success') {
+      this.notification.message = message;
+      this.notification.type = type;
+      this.notification.visible = true;
+      this.notification.show = false;
+
+      if (this.hideTimeoutId) {
+        clearTimeout(this.hideTimeoutId);
+        this.hideTimeoutId = null;
+      }
+
+      if (this.cleanupTimeoutId) {
+        clearTimeout(this.cleanupTimeoutId);
+        this.cleanupTimeoutId = null;
+      }
+
+      requestAnimationFrame(() => {
+        this.notification.show = true;
+      });
+
+      this.hideTimeoutId = setTimeout(() => {
+        this.notification.show = false;
+        this.cleanupTimeoutId = setTimeout(() => {
+          this.notification.visible = false;
+          this.cleanupTimeoutId = null;
+        }, 500);
+        this.hideTimeoutId = null;
+      }, 3000);
+    },
+    handleLoginSuccess() {
+      this.showNotification('Успішний вхід');
+      setTimeout(() => {
+        window.location.href = './admin.html';
+      }, 1000);
+    },
+    handleError(message) {
+      this.showNotification(message, 'error');
+    },
+  },
+  template: `
+    <div>
+      <auth-notification
+        :message="notification.message"
+        :type="notification.type"
+        :visible="notification.visible"
+        :show="notification.show"
+      ></auth-notification>
+
+      <auth-layout
+        title="Авторизація"
+        question-text="Немає акаунта?"
+        link-text="Зареєструватися"
+        link-href="./register.html"
+      >
+        <login-form @success="handleLoginSuccess" @error="handleError" />
+      </auth-layout>
+    </div>
+  `,
+});
+
+app.mount('#app');
