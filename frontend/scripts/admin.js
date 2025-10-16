@@ -121,6 +121,125 @@ document.addEventListener('DOMContentLoaded', () => {
     ? confirmDeleteAdminsBtn.textContent
     : '';
 
+  const EXPO_ID_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const TITLE_MIN_LENGTH = 3;
+  const DESCRIPTION_MIN_LENGTH = 10;
+  const AUTHOR_MIN_LENGTH = 2;
+
+  const toCleanString = (value) => String(value ?? '').trim();
+
+  const setModalFieldError = (form, fieldName, message) => {
+    if (!form) return;
+    const input = form.querySelector(`[name="${fieldName}"]`);
+    if (input) {
+      input.classList.toggle('modal__input--error', Boolean(message));
+      if (typeof input.setCustomValidity === 'function') {
+        input.setCustomValidity(message || '');
+      }
+    }
+
+    const errorElement = form.querySelector(`[data-error-for="${fieldName}"]`);
+    if (errorElement) {
+      errorElement.textContent = message || '';
+    }
+  };
+
+  const resetModalErrors = (form) => {
+    if (!form) return;
+    form.querySelectorAll('.modal__input').forEach((input) => {
+      input.classList.remove('modal__input--error');
+      if (typeof input.setCustomValidity === 'function') {
+        input.setCustomValidity('');
+      }
+    });
+    form.querySelectorAll('[data-error-for]').forEach((errorEl) => {
+      errorEl.textContent = '';
+    });
+  };
+
+  const focusFirstModalError = (form) => {
+    if (!form) return;
+    const erroredInput = form.querySelector('.modal__input--error');
+    if (erroredInput && typeof erroredInput.focus === 'function') {
+      erroredInput.focus();
+      if (typeof erroredInput.reportValidity === 'function') {
+        erroredInput.reportValidity();
+      }
+    }
+  };
+
+  const validateExpoPayload = (payload, { requireExpoId } = { requireExpoId: true }) => {
+    const errors = {};
+
+    if (requireExpoId) {
+      if (!payload.expoId) {
+        errors.expoId = 'Не вдалося згенерувати ідентифікатор виставки.';
+      } else if (!EXPO_ID_REGEX.test(payload.expoId)) {
+        errors.expoId = 'Ідентифікатор може містити лише латиницю, цифри та тире.';
+      }
+    }
+
+    if (!payload.title) {
+      errors.title = 'Вкажіть назву виставки.';
+    } else if (payload.title.length < TITLE_MIN_LENGTH) {
+      errors.title = `Назва має містити щонайменше ${TITLE_MIN_LENGTH} символи.`;
+    }
+
+    if (!payload.description) {
+      errors.description = 'Додайте короткий опис виставки.';
+    } else if (payload.description.length < DESCRIPTION_MIN_LENGTH) {
+      errors.description = `Опис має містити щонайменше ${DESCRIPTION_MIN_LENGTH} символів.`;
+    }
+
+    if (!payload.date) {
+      errors.date = 'Оберіть дату проведення.';
+    } else {
+      const parsedDate = new Date(payload.date);
+      if (Number.isNaN(parsedDate.getTime())) {
+        errors.date = 'Дата має бути у форматі РРРР-ММ-ДД.';
+      }
+    }
+
+    if (payload.author && payload.author.length < AUTHOR_MIN_LENGTH) {
+      errors.author = 'Імʼя автора має містити щонайменше дві літери.';
+    }
+
+    if (payload.photoUrl) {
+      try {
+        const url = new URL(payload.photoUrl);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          errors.photoUrl = 'Посилання має починатися з http або https.';
+        }
+      } catch {
+        errors.photoUrl = 'Введіть коректне посилання на зображення.';
+      }
+    }
+
+    return errors;
+  };
+
+  const attachModalErrorClearing = (form) => {
+    if (!form) return;
+    const handler = (event) => {
+      const target = event.target;
+      if (!target || !target.name) return;
+      setModalFieldError(form, target.name, '');
+    };
+    form.addEventListener('input', handler, true);
+    form.addEventListener('change', handler, true);
+  };
+
+  const generateExpoId = (title) => {
+    const slugBase = toCleanString(title)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    return `${slugBase || 'expo'}-${Date.now()}`;
+  };
+
+  attachModalErrorClearing(editForm);
+  attachModalErrorClearing(createForm);
+
   const setBodyScrollLock = (lock) => {
     document.body.style.overflow = lock ? 'hidden' : 'auto';
   };
@@ -542,7 +661,13 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data?.message || 'Не вдалося створити виставку');
+    if (!res.ok) {
+      const error = new Error(data?.message || 'Не вдалося створити виставку');
+      if (data?.errors && typeof data.errors === 'object') {
+        error.details = data.errors;
+      }
+      throw error;
+    }
     return data.expo;
   };
 
@@ -553,7 +678,13 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data?.message || 'Не вдалося оновити виставку');
+    if (!res.ok) {
+      const error = new Error(data?.message || 'Не вдалося оновити виставку');
+      if (data?.errors && typeof data.errors === 'object') {
+        error.details = data.errors;
+      }
+      throw error;
+    }
     return data.expo;
   };
 
@@ -689,18 +820,41 @@ document.addEventListener('DOMContentLoaded', () => {
   if (editForm) {
     editForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      resetModalErrors(editForm);
+
       const payload = {
-        title: editTitle.value.trim(),
-        author: editAuthor.value.trim(),
-        photoUrl: editPhotoUrl.value.trim(),
-        date: editDate.value,
-        description: editDescription.value.trim(),
+        title: toCleanString(editTitle.value),
+        author: toCleanString(editAuthor.value),
+        photoUrl: toCleanString(editPhotoUrl.value),
+        date: toCleanString(editDate.value),
+        description: toCleanString(editDescription.value),
       };
+
+      const validationErrors = validateExpoPayload(
+        { ...payload, expoId: toCleanString(editExpoId.value) },
+        { requireExpoId: false }
+      );
+
+      Object.entries(validationErrors).forEach(([field, message]) => {
+        setModalFieldError(editForm, field, message);
+      });
+
+      if (Object.keys(validationErrors).length) {
+        focusFirstModalError(editForm);
+        return;
+      }
+
       try {
-        await updateExpo(editExpoId.value, payload);
+        await updateExpo(toCleanString(editExpoId.value), payload);
         toggleModal(editModal, false);
         await fetchExpos();
       } catch (err) {
+        if (err?.details && typeof err.details === 'object') {
+          Object.entries(err.details).forEach(([field, message]) => {
+            setModalFieldError(editForm, field, String(message));
+          });
+          focusFirstModalError(editForm);
+        }
         showNotification(err.message || 'Не вдалося зберегти зміни', 'error');
       }
     });
@@ -710,27 +864,31 @@ document.addEventListener('DOMContentLoaded', () => {
     createForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      let expoId = (createExpoId && createExpoId.value.trim()) || '';
-      const title = createTitle.value.trim();
-      const author = createAuthor.value.trim();
-      const photoUrl = createPhotoUrl.value.trim();
-      const date = createDate.value;
-      const description = createDescription.value.trim();
+      resetModalErrors(createForm);
 
-      if (!title || !date) {
-        showNotification('Вкажіть назву та дату', 'error');
-        return;
-      }
+      let expoId = (createExpoId && toCleanString(createExpoId.value)) || '';
+      const title = toCleanString(createTitle.value);
+      const author = toCleanString(createAuthor.value);
+      const photoUrl = toCleanString(createPhotoUrl.value);
+      const date = toCleanString(createDate.value);
+      const description = toCleanString(createDescription.value);
 
       if (!expoId) {
-        const slugBase = title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/gi, '-')
-          .replace(/(^-|-$)/g, '');
-        expoId = `${slugBase || 'expo'}-${Date.now()}`;
+        expoId = generateExpoId(title);
       }
 
       const payload = { expoId, title, author, photoUrl, date, description };
+
+      const validationErrors = validateExpoPayload(payload);
+
+      Object.entries(validationErrors).forEach(([field, message]) => {
+        setModalFieldError(createForm, field, message);
+      });
+
+      if (Object.keys(validationErrors).length) {
+        focusFirstModalError(createForm);
+        return;
+      }
 
       try {
         await createExpo(payload);
@@ -738,6 +896,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (createForm) createForm.reset();
         await fetchExpos();
       } catch (err) {
+        if (err?.details && typeof err.details === 'object') {
+          Object.entries(err.details).forEach(([field, message]) => {
+            setModalFieldError(createForm, field, String(message));
+          });
+          focusFirstModalError(createForm);
+        }
         showNotification(err.message || 'Не вдалося створити виставку', 'error');
       }
     });
