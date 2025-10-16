@@ -1,6 +1,5 @@
 import '../styles/main.scss';
 import IMask from 'imask';
-import { createApp, reactive, ref, onMounted } from 'vue';
 
 const API_BASE =
   (typeof import.meta !== 'undefined' &&
@@ -11,45 +10,6 @@ const API_BASE =
 const jsonHeaders = {
   'Content-Type': 'application/json',
 };
-
-function useNotification() {
-  const notification = reactive({
-    message: '',
-    type: 'success',
-    visible: false,
-    show: false,
-  });
-
-  let hideTimer = null;
-  let removeTimer = null;
-
-  const showNotification = (message, type = 'success') => {
-    notification.message = message;
-    notification.type = type;
-    notification.visible = true;
-    notification.show = false;
-
-    if (hideTimer) {
-      clearTimeout(hideTimer);
-    }
-    if (removeTimer) {
-      clearTimeout(removeTimer);
-    }
-
-    setTimeout(() => {
-      notification.show = true;
-    }, 10);
-
-    hideTimer = setTimeout(() => {
-      notification.show = false;
-      removeTimer = setTimeout(() => {
-        notification.visible = false;
-      }, 500);
-    }, 3000);
-  };
-
-  return { notification, showNotification };
-}
 
 const NotificationBar = {
   name: 'NotificationBar',
@@ -111,13 +71,12 @@ const AuthActions = {
 const LoginForm = {
   name: 'LoginForm',
   emits: ['success', 'error'],
-  setup(_, { emit }) {
-    const formRef = ref(null);
+  methods: {
+    async handleSubmit() {
+      const form = this.$refs.form;
+      if (!form) return;
 
-    const handleSubmit = async () => {
-      if (!formRef.value) return;
-
-      const formData = new FormData(formRef.value);
+      const formData = new FormData(form);
       const payload = {
         email: formData.get('email'),
         password: formData.get('password'),
@@ -136,19 +95,17 @@ const LoginForm = {
           throw new Error(data?.message || 'Помилка авторизації');
         }
 
-        emit('success', {
+        this.$emit('success', {
           message: 'Успішний вхід',
           token: data?.token || '',
         });
       } catch (error) {
-        emit('error', error.message || 'Сталася помилка під час авторизації');
+        this.$emit('error', error.message || 'Сталася помилка під час авторизації');
       }
-    };
-
-    return { formRef, handleSubmit };
+    },
   },
   template: `
-    <form ref="formRef" class="auth-form" novalidate @submit.prevent="handleSubmit">
+    <form ref="form" class="auth-form" novalidate @submit.prevent="handleSubmit">
       <label class="auth-label">Email
         <input type="email" name="email" required autocomplete="email" class="auth-input" />
       </label>
@@ -165,45 +122,55 @@ const LoginForm = {
 const RegisterForm = {
   name: 'RegisterForm',
   emits: ['success', 'error'],
-  setup(_, { emit }) {
-    const formRef = ref(null);
-    const phoneInput = ref(null);
-    const phoneError = ref('');
-    let phoneMask = null;
-
-    const showPhoneError = () => {
-      if (!phoneMask) return;
-
-      if (!phoneMask.masked.isComplete) {
-        phoneError.value = 'Введіть номер у форматі +380 00 000 00 00';
-      } else {
-        phoneError.value = '';
-      }
+  data() {
+    return {
+      phoneError: '',
+      phoneMask: null,
     };
+  },
+  mounted() {
+    const input = this.$refs.phoneInput;
+    if (input) {
+      this.phoneMask = IMask(input, {
+        mask: '+{380} 00 000 00 00',
+      });
 
-    onMounted(() => {
-      if (phoneInput.value) {
-        phoneMask = IMask(phoneInput.value, {
-          mask: '+{380} 00 000 00 00',
-        });
+      input.addEventListener('input', this.showPhoneError);
+      input.addEventListener('blur', this.showPhoneError);
+    }
+  },
+  beforeUnmount() {
+    const input = this.$refs.phoneInput;
+    if (input) {
+      input.removeEventListener('input', this.showPhoneError);
+      input.removeEventListener('blur', this.showPhoneError);
+    }
+  },
+  methods: {
+    showPhoneError() {
+      if (!this.phoneMask) return;
 
-        phoneInput.value.addEventListener('input', showPhoneError);
-        phoneInput.value.addEventListener('blur', showPhoneError);
+      if (!this.phoneMask.masked.isComplete) {
+        this.phoneError = 'Введіть номер у форматі +380 00 000 00 00';
+      } else {
+        this.phoneError = '';
       }
-    });
+    },
+    async handleSubmit() {
+      const form = this.$refs.form;
+      const input = this.$refs.phoneInput;
 
-    const handleSubmit = async () => {
-      if (!formRef.value) return;
+      if (!form) return;
 
-      if (!phoneMask || !phoneMask.masked.isComplete) {
-        showPhoneError();
-        if (phoneInput.value) {
-          phoneInput.value.focus();
+      if (!this.phoneMask || !this.phoneMask.masked.isComplete) {
+        this.showPhoneError();
+        if (input) {
+          input.focus();
         }
         return;
       }
 
-      const formData = new FormData(formRef.value);
+      const formData = new FormData(form);
       const payload = {
         email: formData.get('email'),
         password: formData.get('password'),
@@ -212,7 +179,7 @@ const RegisterForm = {
         middleName: formData.get('middleName') || '',
         gender: formData.get('gender') || null,
         birthDate: formData.get('birthDate'),
-        phone: phoneMask.value,
+        phone: this.phoneMask.value,
       };
 
       try {
@@ -228,24 +195,17 @@ const RegisterForm = {
           throw new Error(data?.message || 'Помилка реєстрації');
         }
 
-        emit('success', {
+        this.$emit('success', {
           message: 'Реєстрація успішна',
           token: data?.token || '',
         });
       } catch (error) {
-        emit('error', error.message || 'Сталася помилка під час реєстрації');
+        this.$emit('error', error.message || 'Сталася помилка під час реєстрації');
       }
-    };
-
-    return {
-      formRef,
-      phoneInput,
-      phoneError,
-      handleSubmit,
-    };
+    },
   },
   template: `
-    <form ref="formRef" class="auth-form" novalidate @submit.prevent="handleSubmit">
+    <form ref="form" class="auth-form" novalidate @submit.prevent="handleSubmit">
       <label class="auth-label">Email
         <input type="email" name="email" required autocomplete="email" class="auth-input" />
       </label>
@@ -317,10 +277,51 @@ const AuthPage = {
       required: true,
     },
   },
-  setup(props) {
-    const { notification, showNotification } = useNotification();
+  data() {
+    return {
+      notification: {
+        message: '',
+        type: 'success',
+        visible: false,
+        show: false,
+      },
+      hideTimer: null,
+      removeTimer: null,
+    };
+  },
+  computed: {
+    title() {
+      return this.page === 'login' ? 'Авторизація' : 'Реєстрація';
+    },
+  },
+  methods: {
+    showNotification(message, type = 'success') {
+      this.notification.message = message;
+      this.notification.type = type;
+      this.notification.visible = true;
+      this.notification.show = false;
 
-    const handleSuccess = ({ message, token }) => {
+      if (this.hideTimer) {
+        clearTimeout(this.hideTimer);
+        this.hideTimer = null;
+      }
+      if (this.removeTimer) {
+        clearTimeout(this.removeTimer);
+        this.removeTimer = null;
+      }
+
+      window.setTimeout(() => {
+        this.notification.show = true;
+      }, 10);
+
+      this.hideTimer = window.setTimeout(() => {
+        this.notification.show = false;
+        this.removeTimer = window.setTimeout(() => {
+          this.notification.visible = false;
+        }, 500);
+      }, 3000);
+    },
+    handleSuccess({ message, token }) {
       if (token) {
         try {
           localStorage.setItem('authToken', token);
@@ -328,20 +329,12 @@ const AuthPage = {
           console.error('Не вдалося зберегти токен', error);
         }
       }
-      showNotification(message, 'success');
+      this.showNotification(message, 'success');
       window.location.href = './admin.html';
-    };
-
-    const handleError = (message) => {
-      showNotification(message, 'error');
-    };
-
-    return {
-      notification,
-      handleSuccess,
-      handleError,
-      title: props.page === 'login' ? 'Авторизація' : 'Реєстрація',
-    };
+    },
+    handleError(message) {
+      this.showNotification(message, 'error');
+    },
   },
   template: `
     <div>
@@ -356,10 +349,18 @@ const AuthPage = {
   `,
 };
 
-const appContainer = document.getElementById('app');
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('app');
+  if (!container) return;
 
-if (appContainer) {
-  const page = appContainer.dataset.page === 'register' ? 'register' : 'login';
+  const vueGlobal = window.Vue || {};
+  const { createApp } = vueGlobal;
 
-  createApp(AuthPage, { page }).mount('#app');
-}
+  if (typeof createApp !== 'function') {
+    console.error('Vue не завантажено');
+    return;
+  }
+
+  const page = container.dataset.page === 'register' ? 'register' : 'login';
+  createApp(AuthPage, { page }).mount(container);
+});
