@@ -66,6 +66,25 @@ This folder stores the user-facing website.
 
 ## Development
 
-- `npm start` runs the main development workflow defined in `package.json`.
-- `npm run dev` starts the API server in development mode.
-- `npm run build` bundles the frontend for production.
+Follow the steps below to start the project locally:
+
+1. Install the dependencies once:
+   ```bash
+   npm install
+   ```
+2. Create a `.env` file (or copy `.env.example` if it exists) with your MySQL
+   connection details and JWT secret. The backend uses those values when it
+   boots.
+3. Launch the full stack development server:
+   ```bash
+   npm start
+   ```
+   This runs `node backend/index.js`, which in turn starts the Express API and
+   spins up Vite in middleware mode so the frontend pages are served from the
+   same address. Open the URL printed in the terminal (by default
+   `http://localhost:3000`) in your browser.
+
+Other helpful scripts:
+
+- `npm run dev` – also runs the Express server in development mode.
+- `npm run build` – bundles the frontend for production deployment.
