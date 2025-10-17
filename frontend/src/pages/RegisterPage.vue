@@ -546,7 +546,7 @@ const formatBirthDate = (value) => {
   return `${day}.${month}.${year}`;
 };
 
-// Checkbox selection logic
+
 const isAllSelected = computed(() => {
   return (
     users.value.length > 0 && selectedUsers.value.length === users.value.length
@@ -600,18 +600,18 @@ const duplicateSelectedUsers = () => {
   selectedUsers.value = [];
 };
 
-// Watch users array changes to update selection
+
 watch(
   () => users.value.length,
   () => {
-    // Remove invalid selections when users are deleted
+
     selectedUsers.value = selectedUsers.value.filter(
       (index) => index < users.value.length
     );
   }
 );
 
-// Watch for indeterminate state changes
+
 watch(
   [isAllSelected, isIndeterminate],
   () => {
