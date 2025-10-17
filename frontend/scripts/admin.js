@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const yyyy = d.getFullYear();
     const mm = `${d.getMonth() + 1}`.padStart(2, '0');
     const dd = `${d.getDate()}`.padStart(2, '0');
-    return `${dd}:${mm}:${yyyy}`;
+    return `${dd}.${mm}.${yyyy}`;
   };
 
   const mapGender = (value) => {
