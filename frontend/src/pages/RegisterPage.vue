@@ -141,7 +141,7 @@
               <td class="cell-name">{{ formatFullName(user) }}</td>
               <td>{{ user.email }}</td>
               <td>{{ formatGender(user.gender) }}</td>
-              <td>{{ user.phone || '—' }}</td>
+              <td>{{ user.phone}}</td>
               <td>{{ formatBirthDate(user.birthDate) }}</td>
             </tr>
           </tbody>
