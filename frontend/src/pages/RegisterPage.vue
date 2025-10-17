@@ -580,7 +580,6 @@ const toggleUserSelection = (index) => {
 const deleteSelectedUsers = () => {
   if (selectedUsers.value.length === 0) return;
 
-  // Sort indices in descending order to avoid index shifting issues
   const sortedIndices = [...selectedUsers.value].sort((a, b) => b - a);
 
   sortedIndices.forEach((index) => {
