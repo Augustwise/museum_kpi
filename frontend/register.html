@@ -12,80 +12,8 @@
       rel="stylesheet"
     />
   </head>
-  <body class="auth-page">
-    <div id="notification" class="notification" style="display:none;"></div>
-    <main class="auth-card" role="main">
-      <header style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <img src="./images/NAMU_logo.svg" alt="NAMU" width="32" height="32" />
-        <h1 class="auth-title">Реєстрація</h1>
-      </header>
-
-      <form id="registerForm" class="auth-form" novalidate>
-        <label class="auth-label">Email
-          <input type="email" name="email" required autocomplete="email" class="auth-input" />
-          <p class="auth-error" data-error-for="email" aria-live="polite"></p>
-        </label>
-
-        <label class="auth-label">Пароль
-          <input type="password" name="password" required minlength="6" autocomplete="new-password" class="auth-input" />
-          <p class="auth-error" data-error-for="password" aria-live="polite"></p>
-        </label>
-
-        <label class="auth-label">Прізвище
-          <input type="text" name="lastName" required class="auth-input" />
-          <p class="auth-error" data-error-for="lastName" aria-live="polite"></p>
-        </label>
-
-        <label class="auth-label">Ім’я
-          <input type="text" name="firstName" required class="auth-input" />
-          <p class="auth-error" data-error-for="firstName" aria-live="polite"></p>
-        </label>
-
-        <label class="auth-label">По батькові
-          <input type="text" name="middleName" class="auth-input" />
-          <p class="auth-error" data-error-for="middleName" aria-live="polite"></p>
-        </label>
-
-        <label class="auth-label">Номер телефону
-          <input
-            type="tel"
-            name="phone"
-            id="phone"
-            required
-            inputmode="tel"
-            placeholder="+380 00 000 00 00"
-            class="auth-input"
-            autocomplete="tel"
-          />
-          <p class="auth-error" data-error-for="phone" aria-live="polite"></p>
-        </label>
-
-        <fieldset class="auth-fieldset">
-          <legend class="auth-label auth-legend">Стать (необовʼязково)</legend>
-          <label class="auth-radio">
-            <input type="radio" name="gender" value="male" />
-            <span>Чоловік</span>
-          </label>
-          <label class="auth-radio">
-            <input type="radio" name="gender" value="female" />
-            <span>Жінка</span>
-          </label>
-          <p class="auth-error" data-error-for="gender" aria-live="polite"></p>
-        </fieldset>
-
-        <label class="auth-label">Дата народження
-          <input type="date" name="birthDate" required class="auth-input" />
-          <p class="auth-error" data-error-for="birthDate" aria-live="polite"></p>
-        </label>
-
-        <button type="submit" class="auth-submit">Зареєструватися</button>
-      </form>
-
-      <div class="auth-actions">
-        <p>Вже маєте акаунт? <a href="./login.html">Увійти</a></p>
-        <p style="margin-top:8px"><a href="./index.html">← На головну</a></p>
-      </div>
-    </main>
+  <body class="auth-page" data-auth-mode="register">
+    <div id="app"></div>
 
     <script type="module" src="./scripts/auth.js"></script>
   </body>
