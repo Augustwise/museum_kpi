@@ -5,26 +5,32 @@
       <label class="auth-label">
         Електронна пошта
         <input
-          v-model="email"
+          v-model.trim="email"
           class="auth-input"
+          :class="{ 'auth-input--error': emailErrorVisible }"
           type="email"
           name="email"
           autocomplete="email"
           required
+          @blur="markTouched('email')"
         />
+        <p v-if="emailErrorVisible" class="auth-error">{{ errors.email }}</p>
       </label>
       <label class="auth-label">
         Пароль
         <input
-          v-model="password"
+          v-model.trim="password"
           class="auth-input"
+          :class="{ 'auth-input--error': passwordErrorVisible }"
           type="password"
           name="password"
           autocomplete="current-password"
           required
+          @blur="markTouched('password')"
         />
+        <p v-if="passwordErrorVisible" class="auth-error">{{ errors.password }}</p>
       </label>
-      <button class="auth-submit" type="submit" data-redirect="admin">Увійти</button>
+      <button class="auth-submit" type="submit">Увійти</button>
     </form>
     <p class="auth-actions">
       Ще не маєте акаунта?
@@ -34,12 +40,91 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 const email = ref('');
 const password = ref('');
 
+const errors = reactive({
+  email: '',
+  password: '',
+});
+
+const touched = reactive({
+  email: false,
+  password: false,
+});
+
+const validateEmail = (value) => {
+  if (!value) {
+    return 'Введіть електронну пошту';
+  }
+
+  if (!value.includes('@')) {
+    return 'Електронна пошта має містити символ "@"';
+  }
+
+  return '';
+};
+
+const validatePassword = (value) => {
+  if (!value) {
+    return 'Введіть пароль';
+  }
+
+  if (value.length < 6) {
+    return 'Пароль має містити щонайменше 6 символів';
+  }
+
+  return '';
+};
+
+const updateError = (field) => {
+  if (field === 'email') {
+    errors.email = validateEmail(email.value);
+  }
+
+  if (field === 'password') {
+    errors.password = validatePassword(password.value);
+  }
+};
+
+watch(email, () => {
+  if (touched.email) {
+    updateError('email');
+  }
+});
+
+watch(password, () => {
+  if (touched.password) {
+    updateError('password');
+  }
+});
+
+const markTouched = (field) => {
+  touched[field] = true;
+  updateError(field);
+};
+
+const emailErrorVisible = computed(() => touched.email && Boolean(errors.email));
+const passwordErrorVisible = computed(() => touched.password && Boolean(errors.password));
+
 const handleSubmit = () => {
-  window.location.href = './admin.html';
+  markTouched('email');
+  markTouched('password');
+
+  if (errors.email || errors.password) {
+    return;
+  }
+
+  alert('Вхід успішний!');
+
+  email.value = '';
+  password.value = '';
+
+  touched.email = false;
+  touched.password = false;
+  errors.email = '';
+  errors.password = '';
 };
 </script>

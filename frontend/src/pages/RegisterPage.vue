@@ -5,24 +5,30 @@
       <label class="auth-label">
         Електронна пошта
         <input
-          v-model="form.email"
+          v-model.trim="form.email"
           class="auth-input"
+          :class="{ 'auth-input--error': emailErrorVisible }"
           type="email"
           name="email"
           autocomplete="email"
           required
+          @blur="markTouched('email')"
         />
+        <p v-if="emailErrorVisible" class="auth-error">{{ errors.email }}</p>
       </label>
       <label class="auth-label">
         Пароль
         <input
-          v-model="form.password"
+          v-model.trim="form.password"
           class="auth-input"
+          :class="{ 'auth-input--error': passwordErrorVisible }"
           type="password"
           name="password"
           autocomplete="new-password"
           required
+          @blur="markTouched('password')"
         />
+        <p v-if="passwordErrorVisible" class="auth-error">{{ errors.password }}</p>
       </label>
       <label class="auth-label">
         Прізвище
@@ -80,23 +86,57 @@
           ref="phoneField"
           v-model="form.phone"
           class="auth-input"
+          :class="{ 'auth-input--error': phoneErrorVisible }"
           type="tel"
           name="phone"
           placeholder="+380 00 000 00 00"
+          @blur="markTouched('phone')"
         />
+        <p v-if="phoneErrorVisible" class="auth-error">{{ errors.phone }}</p>
       </label>
-      <button class="auth-submit" type="submit" data-redirect="admin">Зареєструватися</button>
+      <button class="auth-submit" type="submit">Зареєструватися</button>
     </form>
     <p class="auth-actions">
       Вже маєте акаунт?
       <a href="./login.html">Увійти</a>
     </p>
+    <section class="users-section" aria-labelledby="usersTitle">
+      <h2 id="usersTitle" class="users-title">Користувачі</h2>
+      <div class="users-table-wrapper">
+        <table class="users-table" aria-describedby="usersCaption">
+          <caption id="usersCaption" class="visually-hidden">Список користувачів, доданих під час поточного сеансу</caption>
+          <thead>
+            <tr>
+              <th scope="col">№</th>
+              <th scope="col">ПІБ</th>
+              <th scope="col">Email</th>
+              <th scope="col">Стать</th>
+              <th scope="col">Телефон</th>
+              <th scope="col">Дата народження</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="!users.length">
+              <td class="empty-row" colspan="6">Поки що немає зареєстрованих користувачів</td>
+            </tr>
+            <tr v-for="(user, index) in users" :key="`${user.email}-${index}`">
+              <td class="cell-index">{{ index + 1 }}</td>
+              <td class="cell-name">{{ formatFullName(user) }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ formatGender(user.gender) }}</td>
+              <td>{{ user.phone || '—' }}</td>
+              <td>{{ formatBirthDate(user.birthDate) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup>
 import IMask from 'imask';
-import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 const form = reactive({
   email: '',
@@ -112,6 +152,20 @@ const form = reactive({
 const phoneField = ref(null);
 let phoneMask;
 
+const errors = reactive({
+  email: '',
+  password: '',
+  phone: '',
+});
+
+const touched = reactive({
+  email: false,
+  password: false,
+  phone: false,
+});
+
+const users = ref([]);
+
 onMounted(() => {
   if (phoneField.value) {
     phoneMask = IMask(phoneField.value, {
@@ -125,7 +179,164 @@ onBeforeUnmount(() => {
   phoneMask?.destroy();
 });
 
+const validateEmail = (value) => {
+  if (!value) {
+    return 'Введіть електронну пошту';
+  }
+
+  if (!value.includes('@')) {
+    return 'Електронна пошта має містити символ "@"';
+  }
+
+  return '';
+};
+
+const validatePassword = (value) => {
+  if (!value) {
+    return 'Введіть пароль';
+  }
+
+  if (value.length < 6) {
+    return 'Пароль має містити щонайменше 6 символів';
+  }
+
+  return '';
+};
+
+const validatePhone = (value) => {
+  const digits = value.replace(/\D/g, '');
+  const localPart = digits.startsWith('380') ? digits.slice(3) : digits;
+
+  if (!localPart.length) {
+    return '';
+  }
+
+  if (localPart.length !== 9) {
+    return 'Введіть повний номер телефону';
+  }
+
+  return '';
+};
+
+const updateError = (field) => {
+  if (field === 'email') {
+    errors.email = validateEmail(form.email);
+  }
+
+  if (field === 'password') {
+    errors.password = validatePassword(form.password);
+  }
+
+  if (field === 'phone') {
+    errors.phone = validatePhone(form.phone);
+  }
+};
+
+watch(
+  () => form.email,
+  () => {
+    if (touched.email) {
+      updateError('email');
+    }
+  },
+);
+
+watch(
+  () => form.password,
+  () => {
+    if (touched.password) {
+      updateError('password');
+    }
+  },
+);
+
+watch(
+  () => form.phone,
+  () => {
+    if (touched.phone) {
+      updateError('phone');
+    }
+  },
+);
+
+const markTouched = (field) => {
+  touched[field] = true;
+  updateError(field);
+};
+
+const emailErrorVisible = computed(() => touched.email && Boolean(errors.email));
+const passwordErrorVisible = computed(() => touched.password && Boolean(errors.password));
+const phoneErrorVisible = computed(() => touched.phone && Boolean(errors.phone));
+
+const resetForm = () => {
+  form.email = '';
+  form.password = '';
+  form.lastName = '';
+  form.firstName = '';
+  form.middleName = '';
+  form.gender = '';
+  form.birthDate = '';
+  form.phone = '';
+
+  if (phoneMask) {
+    phoneMask.value = '';
+    phoneMask.updateValue();
+  }
+
+  Object.keys(errors).forEach((key) => {
+    errors[key] = '';
+  });
+
+  Object.keys(touched).forEach((key) => {
+    touched[key] = false;
+  });
+};
+
 const handleSubmit = () => {
-  window.location.href = './admin.html';
+  markTouched('email');
+  markTouched('password');
+  markTouched('phone');
+
+  if (errors.email || errors.password || errors.phone) {
+    return;
+  }
+
+  users.value.push({
+    email: form.email,
+    lastName: form.lastName,
+    firstName: form.firstName,
+    middleName: form.middleName,
+    gender: form.gender,
+    birthDate: form.birthDate,
+    phone: form.phone,
+  });
+
+  resetForm();
+};
+
+const formatFullName = (user) => {
+  const parts = [user.lastName, user.firstName, user.middleName].filter(Boolean);
+  return parts.length ? parts.join(' ') : '—';
+};
+
+const formatGender = (value) => {
+  if (value === 'female') {
+    return 'Жіноча';
+  }
+
+  if (value === 'male') {
+    return 'Чоловіча';
+  }
+
+  return 'Не вказано';
+};
+
+const formatBirthDate = (value) => {
+  if (!value) {
+    return '—';
+  }
+
+  const [year, month, day] = value.split('-');
+  return `${day}.${month}.${year}`;
 };
 </script>
