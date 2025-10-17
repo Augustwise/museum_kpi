@@ -1,4 +1,4 @@
-@import 'utils';
+@import "utils";
 
 * {
   box-sizing: border-box;
@@ -26,7 +26,6 @@ a {
 }
 
 .container {
-  
   margin: 0 auto;
   padding: 0 $mobile-margin;
 
@@ -117,7 +116,7 @@ a {
       display: block;
       width: 100%;
       height: 100%;
-      background-image: url('../images/Museum_header.png');
+      background-image: url("../images/Museum_header.png");
       background-size: cover;
       background-position: center left;
       background-repeat: no-repeat;
@@ -432,7 +431,7 @@ a {
     position: relative;
 
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       top: -20px;
       left: 0;
@@ -501,12 +500,12 @@ a {
 
     /* Prevent overlap with close button and add bottom separator on mobile */
     position: relative;
-    margin-top: 8px;         /* slight downward offset */
-    padding-bottom: 16px;    /* space for the separator line */
-    margin-left: 50px;       /* align with nav to avoid the close button */
+    margin-top: 8px; /* slight downward offset */
+    padding-bottom: 16px; /* space for the separator line */
+    margin-left: 50px; /* align with nav to avoid the close button */
 
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       left: 0;
       right: 0;
@@ -536,9 +535,15 @@ a {
 }
 /* Pulse animation for mobile menu (0.7s) */
 @keyframes mobileMenuPulse {
-  0% { transform: scale(1); }
-  35% { transform: scale(1.04); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .mobile-menu__content--pulse {
@@ -558,9 +563,15 @@ a {
   }
 
   /* Ensure three sections order: Nav | Info | Auth on tablet/desktop */
-  .mobile-menu__nav { order: 1; }
-  .mobile-menu__info { order: 2; }
-  .mobile-menu__auth { order: 3; }
+  .mobile-menu__nav {
+    order: 1;
+  }
+  .mobile-menu__info {
+    order: 2;
+  }
+  .mobile-menu__auth {
+    order: 3;
+  }
 
   .burger-menu .burger-icon {
     width: 28px;
@@ -597,8 +608,7 @@ a {
   z-index: 150;
   opacity: 0;
   visibility: hidden;
-  transition:
-    opacity #{$animation-duration} ease-in-out,
+  transition: opacity #{$animation-duration} ease-in-out,
     visibility #{$animation-duration} ease-in-out;
 
   &.active {
@@ -715,26 +725,27 @@ a {
   color: $c-gray-p;
   cursor: pointer;
 
-  input[type='radio'] {
+  input[type="radio"] {
     accent-color: $c-green;
   }
 }
 
 .auth-input {
-   width: 100%;
-   height: 42px;
-   border-radius: 6px;
-   border: 1px solid #e0e0e0;
-   padding: 10px 12px;
-   font-family: Montserrat, sans-serif;
-   font-size: 14px;
-   outline: none;
-   transition: border-color #{$animation-duration} ease, box-shadow #{$animation-duration} ease;
+  width: 100%;
+  height: 42px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color #{$animation-duration} ease,
+    box-shadow #{$animation-duration} ease;
 
-   &:focus {
-     border-color: $c-green;
-     box-shadow: 0 0 0 3px rgba(26, 90, 76, 0.1);
-   }
+  &:focus {
+    border-color: $c-green;
+    box-shadow: 0 0 0 3px rgba(26, 90, 76, 0.1);
+  }
 }
 
 .auth-input--error {
@@ -867,6 +878,95 @@ a {
   color: $c-gray-p;
 }
 
+.users-table .cell-checkbox {
+  width: 48px;
+  text-align: center;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+
+    &:focus {
+      outline: 2px solid $c-green;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.users-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.users-action-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  &:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &--delete {
+    background: #dc3545;
+    color: $c-white;
+
+    &:not(:disabled):hover {
+      background: #c82333;
+    }
+  }
+
+  &--duplicate {
+    background: $c-green;
+    color: $c-white;
+
+    &:not(:disabled):hover {
+      background: darken($c-green, 8%);
+    }
+  }
+}
+
+// Responsive styles for table actions
+@media (max-width: 768px) {
+  .users-actions {
+    flex-direction: column;
+
+    .users-action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .users-table .cell-checkbox {
+    width: 40px;
+
+    input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
 .visually-hidden {
   position: absolute !important;
   height: 1px;
@@ -892,7 +992,9 @@ a {
   text-align: center;
   opacity: 0;
   visibility: hidden;
-  transition: opacity #{$animation-duration} ease, visibility #{$animation-duration} ease, transform #{$animation-duration} ease;
+  transition: opacity #{$animation-duration} ease,
+    visibility #{$animation-duration} ease,
+    transform #{$animation-duration} ease;
   max-width: 90%;
   word-wrap: break-word;
 
@@ -911,9 +1013,9 @@ a {
   }
 }
 
-@import 'events';
-@import 'lecture';
-@import 'gallery';
-@import 'subscription';
-@import 'faq';
-@import 'footer';
+@import "events";
+@import "lecture";
+@import "gallery";
+@import "subscription";
+@import "faq";
+@import "footer";
