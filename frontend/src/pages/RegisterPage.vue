@@ -35,30 +35,42 @@
         <input
           v-model="form.lastName"
           class="auth-input"
+          :class="{ 'auth-input--error': lastNameErrorVisible }"
           type="text"
           name="lastName"
           autocomplete="family-name"
+          required
+          @blur="markTouched('lastName')"
         />
+        <p v-if="lastNameErrorVisible" class="auth-error">{{ errors.lastName }}</p>
       </label>
       <label class="auth-label">
         Імʼя
         <input
           v-model="form.firstName"
           class="auth-input"
+          :class="{ 'auth-input--error': firstNameErrorVisible }"
           type="text"
           name="firstName"
           autocomplete="given-name"
+          required
+          @blur="markTouched('firstName')"
         />
+        <p v-if="firstNameErrorVisible" class="auth-error">{{ errors.firstName }}</p>
       </label>
       <label class="auth-label">
         По батькові
         <input
           v-model="form.middleName"
           class="auth-input"
+          :class="{ 'auth-input--error': middleNameErrorVisible }"
           type="text"
           name="middleName"
           autocomplete="additional-name"
+          required
+          @blur="markTouched('middleName')"
         />
+        <p v-if="middleNameErrorVisible" class="auth-error">{{ errors.middleName }}</p>
       </label>
       <fieldset class="auth-fieldset">
         <legend class="auth-legend">Стать</legend>
@@ -76,9 +88,13 @@
         <input
           v-model="form.birthDate"
           class="auth-input"
+          :class="{ 'auth-input--error': birthDateErrorVisible }"
           type="date"
           name="birthDate"
+          required
+          @blur="markTouched('birthDate')"
         />
+        <p v-if="birthDateErrorVisible" class="auth-error">{{ errors.birthDate }}</p>
       </label>
       <label class="auth-label">
         Телефон
@@ -90,6 +106,7 @@
           type="tel"
           name="phone"
           placeholder="+380 00 000 00 00"
+          required
           @blur="markTouched('phone')"
         />
         <p v-if="phoneErrorVisible" class="auth-error">{{ errors.phone }}</p>
@@ -155,12 +172,20 @@ let phoneMask;
 const errors = reactive({
   email: '',
   password: '',
+  lastName: '',
+  firstName: '',
+  middleName: '',
+  birthDate: '',
   phone: '',
 });
 
 const touched = reactive({
   email: false,
   password: false,
+  lastName: false,
+  firstName: false,
+  middleName: false,
+  birthDate: false,
   phone: false,
 });
 
@@ -203,12 +228,44 @@ const validatePassword = (value) => {
   return '';
 };
 
+const validateLastName = (value) => {
+  if (!value.trim()) {
+    return 'Введіть прізвище';
+  }
+
+  return '';
+};
+
+const validateFirstName = (value) => {
+  if (!value.trim()) {
+    return 'Введіть імʼя';
+  }
+
+  return '';
+};
+
+const validateMiddleName = (value) => {
+  if (!value.trim()) {
+    return 'Введіть по батькові';
+  }
+
+  return '';
+};
+
+const validateBirthDate = (value) => {
+  if (!value) {
+    return 'Оберіть дату народження';
+  }
+
+  return '';
+};
+
 const validatePhone = (value) => {
   const digits = value.replace(/\D/g, '');
   const localPart = digits.startsWith('380') ? digits.slice(3) : digits;
 
   if (!localPart.length) {
-    return '';
+    return 'Введіть номер телефону';
   }
 
   if (localPart.length !== 9) {
@@ -225,6 +282,22 @@ const updateError = (field) => {
 
   if (field === 'password') {
     errors.password = validatePassword(form.password);
+  }
+
+  if (field === 'lastName') {
+    errors.lastName = validateLastName(form.lastName);
+  }
+
+  if (field === 'firstName') {
+    errors.firstName = validateFirstName(form.firstName);
+  }
+
+  if (field === 'middleName') {
+    errors.middleName = validateMiddleName(form.middleName);
+  }
+
+  if (field === 'birthDate') {
+    errors.birthDate = validateBirthDate(form.birthDate);
   }
 
   if (field === 'phone') {
@@ -251,6 +324,42 @@ watch(
 );
 
 watch(
+  () => form.lastName,
+  () => {
+    if (touched.lastName) {
+      updateError('lastName');
+    }
+  },
+);
+
+watch(
+  () => form.firstName,
+  () => {
+    if (touched.firstName) {
+      updateError('firstName');
+    }
+  },
+);
+
+watch(
+  () => form.middleName,
+  () => {
+    if (touched.middleName) {
+      updateError('middleName');
+    }
+  },
+);
+
+watch(
+  () => form.birthDate,
+  () => {
+    if (touched.birthDate) {
+      updateError('birthDate');
+    }
+  },
+);
+
+watch(
   () => form.phone,
   () => {
     if (touched.phone) {
@@ -266,6 +375,10 @@ const markTouched = (field) => {
 
 const emailErrorVisible = computed(() => touched.email && Boolean(errors.email));
 const passwordErrorVisible = computed(() => touched.password && Boolean(errors.password));
+const lastNameErrorVisible = computed(() => touched.lastName && Boolean(errors.lastName));
+const firstNameErrorVisible = computed(() => touched.firstName && Boolean(errors.firstName));
+const middleNameErrorVisible = computed(() => touched.middleName && Boolean(errors.middleName));
+const birthDateErrorVisible = computed(() => touched.birthDate && Boolean(errors.birthDate));
 const phoneErrorVisible = computed(() => touched.phone && Boolean(errors.phone));
 
 const resetForm = () => {
@@ -295,9 +408,21 @@ const resetForm = () => {
 const handleSubmit = () => {
   markTouched('email');
   markTouched('password');
+  markTouched('lastName');
+  markTouched('firstName');
+  markTouched('middleName');
+  markTouched('birthDate');
   markTouched('phone');
 
-  if (errors.email || errors.password || errors.phone) {
+  if (
+    errors.email ||
+    errors.password ||
+    errors.lastName ||
+    errors.firstName ||
+    errors.middleName ||
+    errors.birthDate ||
+    errors.phone
+  ) {
     return;
   }
 
