@@ -20,7 +20,6 @@ export default defineConfig({
         main: resolve(__dirname, `${rootDir}/index.html`),
         login: resolve(__dirname, `${rootDir}/login.html`),
         register: resolve(__dirname, `${rootDir}/register.html`),
-        admin: resolve(__dirname, `${rootDir}/admin.html`),
       },
     },
   },
