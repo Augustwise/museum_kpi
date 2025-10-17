@@ -1,22 +1,25 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'node:path';
+
+const rootDir = 'frontend';
 
 export default defineConfig({
-  root: 'frontend',
-  resolve: {
-    alias: {
-      vue: 'vue/dist/vue.esm-bundler.js',
-    },
-  },
-  define: {
-    __VUE_OPTIONS_API__: true,
-    __VUE_PROD_DEVTOOLS__: false,
-    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
-  },
+  root: rootDir,
+  base: './',
   server: {
-    open: true,
+    host: '0.0.0.0',
+    port: 5173,
   },
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, `${rootDir}/index.html`),
+        login: resolve(__dirname, `${rootDir}/login.html`),
+        register: resolve(__dirname, `${rootDir}/register.html`),
+        admin: resolve(__dirname, `${rootDir}/admin.html`),
+      },
+    },
   },
 });
