@@ -3,32 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Адмін панель — Виставки</title>
+    <title>Адмін панель — NAMU</title>
     <link rel="icon" type="image/x-icon" href="./images/NAMU_logo.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      rel="preload"
-      as="style"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'"
+      rel="stylesheet"
     />
-    <noscript>
-    </noscript>
-      <style>html{visibility:hidden}</style>
-      <script>
-        (function () {
-          try {
-            var t = localStorage.getItem('authToken');
-            if (!t) {
-              location.replace('./index.html');
-              return;
-            }
-          } catch (e) {
-            location.replace('./index.html');
-          }
-        })();
-      </script>
+    <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="./styles/admin.css" />
   </head>
   <body>
     <header class="admin-header">
@@ -39,25 +23,17 @@
         </div>
         <nav class="admin-header__nav" style="display:flex;gap:10px;align-items:center">
           <a href="./index.html" class="admin-link">← На головну</a>
-          <button id="logoutBtn" class="btn btn--secondary" type="button">Вийти</button>
         </nav>
       </div>
     </header>
 
-    <div id="notification" class="notification" style="display:none;"></div>
-
     <main class="admin-main admin-container">
       <section class="admin-section">
         <h1 class="admin-title">Виставки</h1>
-
-        <div class="table-toolbar">
-          <button id="openCreate" class="btn btn--icon">＋ Додати виставку</button>
-          <button id="refreshTable" class="btn btn--secondary">Оновити</button>
-        </div>
-
+        <p>Таблиця наразі порожня. Додавання виставок буде доступне пізніше.</p>
         <div class="table-wrapper">
-          <table class="expos-table" id="exposTable" aria-describedby="exposCaption">
-            <caption id="exposCaption" class="visually-hidden">Таблиця виставок з діями перегляду, редагування та видалення</caption>
+          <table class="expos-table" aria-describedby="exposCaption">
+            <caption id="exposCaption" class="visually-hidden">Таблиця виставок</caption>
             <thead>
               <tr>
                 <th scope="col" style="width:72px">№</th>
@@ -68,9 +44,7 @@
                 <th scope="col" style="width:180px">Дії</th>
               </tr>
             </thead>
-            <tbody id="exposTbody">
-              <!-- rows injected by admin.js -->
-            </tbody>
+            <tbody></tbody>
           </table>
         </div>
       </section>
@@ -78,136 +52,24 @@
       <section class="admin-section admin-section--users">
         <div class="admin-section__header">
           <h2 class="admin-subtitle">Зареєстровані адміністратори сайту</h2>
-          <div class="admin-users-actions">
-            <button id="deleteSelectedAdmins" class="btn btn--danger" type="button" disabled>
-              Видалити вибраних
-            </button>
-          </div>
         </div>
-
+        <p>Список адміністраторів поки що порожній.</p>
         <div class="table-wrapper">
-          <table class="expos-table admins-table" id="adminsTable" aria-describedby="adminsCaption">
+          <table class="expos-table admins-table" aria-describedby="adminsCaption">
             <caption id="adminsCaption" class="visually-hidden">Таблиця зареєстрованих адміністраторів сайту</caption>
             <thead>
               <tr>
-                <th scope="col" class="checkbox-column">
-                  <input type="checkbox" id="adminsSelectAll" aria-label="Позначити всіх" />
-                </th>
+                <th scope="col" class="checkbox-column">№</th>
                 <th scope="col">ПІБ</th>
                 <th scope="col" style="width:240px">Електронна пошта</th>
                 <th scope="col" style="width:160px">Дата реєстрації</th>
                 <th scope="col" style="width:160px">Стать</th>
               </tr>
             </thead>
-            <tbody id="adminsTbody">
-              <!-- rows injected by admin.js -->
-            </tbody>
+            <tbody></tbody>
           </table>
         </div>
       </section>
     </main>
-
-    <!-- View modal -->
-    <div class="modal" id="viewModal" aria-hidden="true" hidden>
-      <div class="modal__content">
-        <button class="modal__close" id="closeView" type="button" aria-label="Закрити">×</button>
-        <h3 class="modal__title">Перегляд виставки</h3>
-        <div class="modal__body" id="viewBody">
-          <!-- filled dynamically -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit modal -->
-    <div class="modal" id="editModal" aria-hidden="true" hidden>
-      <div class="modal__content">
-        <button class="modal__close" id="closeEdit" type="button" aria-label="Закрити">×</button>
-        <h3 class="modal__title">Редагувати виставку</h3>
-        <form id="editForm" class="modal__form">
-          <input type="hidden" name="expoId" id="editExpoId" />
-          <label class="modal__label">Назва
-            <input type="text" name="title" id="editTitle" required class="modal__input" />
-            <p class="modal__error" data-error-for="title" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Автор
-            <input type="text" name="author" id="editAuthor" class="modal__input" />
-            <p class="modal__error" data-error-for="author" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Фото (URL)
-            <input type="url" name="photoUrl" id="editPhotoUrl" class="modal__input" />
-            <p class="modal__error" data-error-for="photoUrl" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Дата
-            <input type="date" name="date" id="editDate" required class="modal__input" />
-            <p class="modal__error" data-error-for="date" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Опис
-            <textarea name="description" id="editDescription" rows="4" class="modal__input" style="height:auto; resize:vertical"></textarea>
-            <p class="modal__error" data-error-for="description" aria-live="polite"></p>
-          </label>
-          <button type="submit" class="modal__submit">Зберегти</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Create modal -->
-    <div class="modal" id="createModal" aria-hidden="true" hidden>
-      <div class="modal__content">
-        <button class="modal__close" id="closeCreate" type="button" aria-label="Закрити">×</button>
-        <h3 class="modal__title">Нова виставка</h3>
-        <form id="createForm" class="modal__form">
-          <label class="modal__label">Назва
-            <input type="text" name="title" id="createTitle" required class="modal__input" />
-            <p class="modal__error" data-error-for="title" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Автор
-            <input type="text" name="author" id="createAuthor" class="modal__input" />
-            <p class="modal__error" data-error-for="author" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Фото (URL)
-            <input type="url" name="photoUrl" id="createPhotoUrl" class="modal__input" />
-            <p class="modal__error" data-error-for="photoUrl" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Дата
-            <input type="date" name="date" id="createDate" required class="modal__input" />
-            <p class="modal__error" data-error-for="date" aria-live="polite"></p>
-          </label>
-          <label class="modal__label">Опис
-            <textarea name="description" id="createDescription" rows="4" class="modal__input" style="height:auto; resize:vertical"></textarea>
-            <p class="modal__error" data-error-for="description" aria-live="polite"></p>
-          </label>
-          <button type="submit" class="modal__submit">Створити</button>
-        </form>
-      </div>
-    </div>
-    <!-- Delete confirm modal -->
-    <div class="modal" id="deleteModal" aria-hidden="true" hidden>
-      <div class="modal__content">
-        <button class="modal__close" id="closeDelete" type="button" aria-label="Закрити">×</button>
-        <h3 class="modal__title">Підтвердження видалення</h3>
-        <p>Ви впевнені, що хочете видалити цю виставку? Дію неможливо скасувати.</p>
-        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
-          <button class="btn btn--secondary" id="cancelDelete" type="button">Скасувати</button>
-          <button class="btn" id="confirmDelete" type="button">Так, видалити</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete admins confirm modal -->
-    <div class="modal" id="deleteAdminsModal" aria-hidden="true" hidden>
-      <div class="modal__content">
-        <button class="modal__close" id="closeDeleteAdmins" type="button" aria-label="Закрити">×</button>
-        <h3 class="modal__title">Підтвердження видалення</h3>
-        <p id="deleteAdminsMessage">
-          Ви впевнені, що хочете видалити вибраних адміністраторів? Дію неможливо скасувати.
-        </p>
-        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
-          <button class="btn btn--secondary" id="cancelDeleteAdmins" type="button">Скасувати</button>
-          <button class="btn" id="confirmDeleteAdmins" type="button">Так, видалити</button>
-        </div>
-      </div>
-    </div>
-
-    <script type="module" src="./scripts/admin.js"></script>
   </body>
 </html>

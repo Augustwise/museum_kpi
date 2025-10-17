@@ -11,10 +11,28 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="./styles/main.css" />
   </head>
   <body class="auth-page" data-auth-mode="login">
-    <div id="app"></div>
+    <div class="auth-card">
+      <h1 class="auth-title">Авторизація</h1>
+      <form class="auth-form" id="loginForm">
+        <label class="auth-label">
+          Електронна пошта
+          <input class="auth-input" type="email" name="email" autocomplete="email" required />
+        </label>
+        <label class="auth-label">
+          Пароль
+          <input class="auth-input" type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <button class="auth-submit" type="submit" data-redirect="admin">Увійти</button>
+      </form>
+      <p class="auth-actions">
+        Ще не маєте акаунта?
+        <a href="./register.html">Зареєструватися</a>
+      </p>
+    </div>
 
-    <script type="module" src="./scripts/auth.js"></script>
+    <script src="./scripts/auth.js" defer></script>
   </body>
 </html>

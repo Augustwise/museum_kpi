@@ -3,25 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node backend/index.js",
-    "dev": "node backend/index.js",
-    "build": "vite build",
-    "preview": "vite preview",
-    "server": "node backend/index.js",
-    "dev:server": "nodemon backend/index.js"
+    "build:styles": "sass --no-source-map frontend/styles/main.scss frontend/styles/main.css && sass --no-source-map frontend/styles/admin.scss frontend/styles/admin.css"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7",
-    "sass": "^1.77.5",
-    "vite": "^7.1.5"
-  },
-  "dependencies": {
-    "bcrypt": "^5.1.1",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "imask": "^7.6.1",
-    "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.4",
-    "vue": "^3.5.13"
+    "sass": "^1.77.5"
   }
 }

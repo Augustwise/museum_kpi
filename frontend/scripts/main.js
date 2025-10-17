@@ -1,5 +1,3 @@
-import '../styles/main.scss';
-
 document.addEventListener('DOMContentLoaded', () => {
   const burgerMenu = document.getElementById('burgerMenu');
   const mobileMenu = document.getElementById('mobileMenu');
@@ -73,6 +71,14 @@ document.addEventListener('DOMContentLoaded', () => {
         pulseMenu();
       }
     });
+
+    mobileMenu.addEventListener('transitionend', (event) => {
+      const finishedTransformAnimation = event.propertyName === 'transform';
+
+      if (finishedTransformAnimation && !mobileMenu.classList.contains('active')) {
+        mobileMenu.hidden = true;
+      }
+    });
   }
 
   document.addEventListener('keydown', (event) => {
@@ -82,16 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
       closeMobileMenu();
     }
   });
-
-  if (mobileMenu) {
-    mobileMenu.addEventListener('transitionend', (event) => {
-      const finishedTransformAnimation = event.propertyName === 'transform';
-
-      if (finishedTransformAnimation && !mobileMenu.classList.contains('active')) {
-        mobileMenu.hidden = true;
-      }
-    });
-  }
 
   mobileMenuLinks.forEach((link) => {
     link.addEventListener('click', closeMobileMenu);
@@ -152,20 +148,4 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
-
-
-
-
-
-  const API_BASE =
-    (typeof import.meta !== 'undefined' &&
-      import.meta.env &&
-      import.meta.env.VITE_API_URL) ||
-    'http://localhost:3000';
-
-  const jsonHeaders = {
-    'Content-Type': 'application/json',
-  };
-
-
 });
