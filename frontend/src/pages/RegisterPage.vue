@@ -514,7 +514,6 @@ const handleSubmit = () => {
 
   resetForm();
 
-  // Clear selection when new user is added
   selectedUsers.value = [];
 };
 
