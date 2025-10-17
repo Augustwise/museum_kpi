@@ -268,6 +268,10 @@ const validatePhone = (value) => {
     return 'Введіть номер телефону';
   }
 
+    if (!localPart.length < 9) {
+    return 'Введіть номер телефону повністю';
+  }
+
   return '';
 };
 
