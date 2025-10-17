@@ -829,7 +829,7 @@ a {
 
 .auth-card {
   width: 100%;
-  max-width: 560px;
+  max-width: 860px;
   background: #fff;
   color: #0f0e08;
   border-radius: 12px;
@@ -980,6 +980,7 @@ a {
   border-collapse: separate;
   border-spacing: 0;
   background: #fff;
+  font-family: Montserrat, sans-serif;
 }
 .users-table thead th {
   position: sticky;
