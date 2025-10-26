@@ -819,6 +819,22 @@ a {
 }
 
 
+@media (min-width: 768px) {
+  .auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+
+  .auth-page #app {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}
+
 .auth-card {
   width: 100%;
   max-width: 860px;
