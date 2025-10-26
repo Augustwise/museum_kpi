@@ -137,74 +137,6 @@
       Вже маєте акаунт?
       <a href="./login.html">Увійти</a>
     </p>
-    <section class="users-section" aria-labelledby="usersTitle">
-      <h2 id="usersTitle" class="users-title">Користувачі</h2>
-      <div v-if="users.length > 0" class="users-actions">
-        <button
-          class="users-action-btn users-action-btn--delete"
-          :disabled="selectedUsers.length === 0"
-          @click="deleteSelectedUsers"
-        >
-          Видалити обрані ({{ selectedUsers.length }})
-        </button>
-        <button
-          class="users-action-btn users-action-btn--duplicate"
-          :disabled="selectedUsers.length === 0"
-          @click="duplicateSelectedUsers"
-        >
-          Дублювати обрані ({{ selectedUsers.length }})
-        </button>
-      </div>
-      <div class="users-table-wrapper">
-        <table class="users-table" aria-describedby="usersCaption">
-          <caption id="usersCaption" class="visually-hidden">
-            Список користувачів, доданих під час поточного сеансу
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col" class="cell-checkbox">
-                <input
-                  ref="selectAllCheckbox"
-                  type="checkbox"
-                  :checked="isAllSelected"
-                  @change="toggleSelectAll"
-                  aria-label="Вибрати всі рядки"
-                />
-              </th>
-              <th scope="col">№</th>
-              <th scope="col">ПІБ</th>
-              <th scope="col">Email</th>
-              <th scope="col">Стать</th>
-              <th scope="col">Телефон</th>
-              <th scope="col">Дата народження</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="!users.length">
-              <td class="empty-row" colspan="7">
-                Поки що немає зареєстрованих користувачів
-              </td>
-            </tr>
-            <tr v-for="(user, index) in users" :key="`${user.email}-${index}`">
-              <td class="cell-checkbox">
-                <input
-                  type="checkbox"
-                  :checked="selectedUsers.includes(index)"
-                  @change="toggleUserSelection(index)"
-                  :aria-label="`Вибрати користувача ${formatFullName(user)}`"
-                />
-              </td>
-              <td class="cell-index">{{ index + 1 }}</td>
-              <td class="cell-name">{{ formatFullName(user) }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ formatGender(user.gender) }}</td>
-              <td>{{ user.phone }}</td>
-              <td>{{ formatBirthDate(user.birthDate) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -231,7 +163,6 @@ const form = reactive({
 });
 
 const phoneField = ref(null);
-const selectAllCheckbox = ref(null);
 let phoneMask;
 
 const errors = reactive({
@@ -253,9 +184,6 @@ const touched = reactive({
   birthDate: false,
   phone: false,
 });
-
-const users = ref([]);
-const selectedUsers = ref([]);
 
 onMounted(() => {
   if (phoneField.value) {
@@ -502,122 +430,18 @@ const handleSubmit = () => {
     return;
   }
 
-  users.value.push({
-    email: form.email,
-    lastName: form.lastName,
-    firstName: form.firstName,
-    middleName: form.middleName,
-    gender: form.gender,
-    birthDate: form.birthDate,
-    phone: form.phone,
-  });
-
   resetForm();
-
-  selectedUsers.value = [];
-};
-
-const formatFullName = (user) => {
-  const parts = [user.lastName, user.firstName, user.middleName].filter(
-    Boolean
-  );
-  return parts.length ? parts.join(" ") : "—";
-};
-
-const formatGender = (value) => {
-  if (value === "female") {
-    return "Жіноча";
-  }
-
-  if (value === "male") {
-    return "Чоловіча";
-  }
-
-  return "Не вказано";
-};
-
-const formatBirthDate = (value) => {
-  if (!value) {
-    return "—";
-  }
-
-  const [year, month, day] = value.split("-");
-  return `${day}.${month}.${year}`;
 };
 
 
-const isAllSelected = computed(() => {
-  return (
-    users.value.length > 0 && selectedUsers.value.length === users.value.length
-  );
-});
-
-const isIndeterminate = computed(() => {
-  return (
-    selectedUsers.value.length > 0 &&
-    selectedUsers.value.length < users.value.length
-  );
-});
-
-const toggleSelectAll = () => {
-  if (isAllSelected.value) {
-    selectedUsers.value = [];
-  } else {
-    selectedUsers.value = users.value.map((_, index) => index);
-  }
-};
-
-const toggleUserSelection = (index) => {
-  const selectedIndex = selectedUsers.value.indexOf(index);
-  if (selectedIndex === -1) {
-    selectedUsers.value.push(index);
-  } else {
-    selectedUsers.value.splice(selectedIndex, 1);
-  }
-};
-
-const deleteSelectedUsers = () => {
-  if (selectedUsers.value.length === 0) return;
-
-  const sortedIndices = [...selectedUsers.value].sort((a, b) => b - a);
-
-  sortedIndices.forEach((index) => {
-    users.value.splice(index, 1);
-  });
-
-  selectedUsers.value = [];
-};
-
-const duplicateSelectedUsers = () => {
-  if (selectedUsers.value.length === 0) return;
-
-  const usersToDuplicate = selectedUsers.value.map((index) => ({
-    ...users.value[index],
-  }));
-  users.value.push(...usersToDuplicate);
-
-  selectedUsers.value = [];
-};
 
 
-watch(
-  () => users.value.length,
-  () => {
-
-    selectedUsers.value = selectedUsers.value.filter(
-      (index) => index < users.value.length
-    );
-  }
-);
 
 
-watch(
-  [isAllSelected, isIndeterminate],
-  () => {
-    if (selectAllCheckbox.value) {
-      selectAllCheckbox.value.indeterminate = isIndeterminate.value;
-    }
-  },
-  { flush: "post" }
-);
+
+
+
+
+
+
 </script>
