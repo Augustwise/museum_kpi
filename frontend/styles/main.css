@@ -817,15 +817,7 @@ a {
     padding: 12px 18px;
   }
 }
-/* Auth pages (login/register) */
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 16px;
-  background: #fff;
-}
+
 
 .auth-card {
   width: 100%;
