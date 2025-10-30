@@ -64,22 +64,6 @@
           {{ errors.firstName }}
         </p>
       </label>
-      <label class="auth-label">
-        По батькові
-        <input
-          v-model="form.middleName"
-          class="auth-input"
-          :class="{ 'auth-input--error': middleNameErrorVisible }"
-          type="text"
-          name="middleName"
-          autocomplete="additional-name"
-          required
-          @blur="markTouched('middleName')"
-        />
-        <p v-if="middleNameErrorVisible" class="auth-error">
-          {{ errors.middleName }}
-        </p>
-      </label>
       <fieldset class="auth-fieldset">
         <legend class="auth-legend">Стать</legend>
         <label class="auth-radio">
@@ -156,7 +140,6 @@ const form = reactive({
   password: "",
   lastName: "",
   firstName: "",
-  middleName: "",
   gender: "",
   birthDate: "",
   phone: "",
@@ -170,7 +153,6 @@ const errors = reactive({
   password: "",
   lastName: "",
   firstName: "",
-  middleName: "",
   birthDate: "",
   phone: "",
 });
@@ -180,7 +162,6 @@ const touched = reactive({
   password: false,
   lastName: false,
   firstName: false,
-  middleName: false,
   birthDate: false,
   phone: false,
 });
@@ -238,14 +219,6 @@ const validateFirstName = (value) => {
   return "";
 };
 
-const validateMiddleName = (value) => {
-  if (!value.trim()) {
-    return "Введіть по батькові";
-  }
-
-  return "";
-};
-
 const validateBirthDate = (value) => {
   if (!value) {
     return "Оберіть дату народження";
@@ -280,10 +253,6 @@ const updateError = (field) => {
 
   if (field === "firstName") {
     errors.firstName = validateFirstName(form.firstName);
-  }
-
-  if (field === "middleName") {
-    errors.middleName = validateMiddleName(form.middleName);
   }
 
   if (field === "birthDate") {
@@ -332,15 +301,6 @@ watch(
 );
 
 watch(
-  () => form.middleName,
-  () => {
-    if (touched.middleName) {
-      updateError("middleName");
-    }
-  }
-);
-
-watch(
   () => form.birthDate,
   () => {
     if (touched.birthDate) {
@@ -375,9 +335,6 @@ const lastNameErrorVisible = computed(
 const firstNameErrorVisible = computed(
   () => touched.firstName && Boolean(errors.firstName)
 );
-const middleNameErrorVisible = computed(
-  () => touched.middleName && Boolean(errors.middleName)
-);
 const birthDateErrorVisible = computed(
   () => touched.birthDate && Boolean(errors.birthDate)
 );
@@ -390,7 +347,6 @@ const resetForm = () => {
   form.password = "";
   form.lastName = "";
   form.firstName = "";
-  form.middleName = "";
   form.gender = "";
   form.birthDate = "";
   form.phone = "";
@@ -414,7 +370,6 @@ const handleSubmit = async () => {
   markTouched("password");
   markTouched("lastName");
   markTouched("firstName");
-  markTouched("middleName");
   markTouched("birthDate");
   markTouched("phone");
 
@@ -423,7 +378,6 @@ const handleSubmit = async () => {
     errors.password ||
     errors.lastName ||
     errors.firstName ||
-    errors.middleName ||
     errors.birthDate ||
     errors.phone
   ) {
@@ -441,7 +395,6 @@ const handleSubmit = async () => {
         password: form.password,
         lastName: form.lastName,
         firstName: form.firstName,
-        middleName: form.middleName,
         gender: form.gender,
         birthDate: form.birthDate,
         phone: form.phone,
