@@ -11,7 +11,6 @@ function terminateAll(code = 0) {
       proc.kill('SIGINT');
     }
   }
-  // give processes some time to shut down gracefully
   setTimeout(() => process.exit(code), 100);
 }
 
