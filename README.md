@@ -8,7 +8,6 @@ The backend provides a REST API for user registration, authentication, and healt
 - **Database:** MySQL (accessed via `mysql2/promise` connection pool)
 - **Security:** Password hashing with `bcrypt`
 - **Configuration:** Environment-driven via `.env` variables
-- **Cross-origin access:** Enabled with `cors`
 
 ## Application Structure
 ```
@@ -40,20 +39,7 @@ DATABASE_URL=mysql://USER:PASSWORD@HOST:PORT/DATABASE?ssl-mode=DISABLED
 - The pool uses sensible defaults (`connectionLimit: 10`, `waitForConnections: true`, `dateStrings: true`).
 
 ## Database Model
-Only the `Users` table is required by the current backend routes.
 
-| Column       | Type             | Notes                                                     |
-|--------------|------------------|-----------------------------------------------------------|
-| `id`         | INT (PK, AUTO)   | Surrogate identifier used in API responses.              |
-| `first_name` | VARCHAR          | Required. Trimmed before insertion.                       |
-| `last_name`  | VARCHAR          | Required. Trimmed before insertion.                       |
-| `birth_date` | DATE             | Required. Stored as string via `dateStrings: true`.       |
-| `gender`     | VARCHAR / ENUM   | Optional. Persisted as provided or `NULL`.                |
-| `email`      | VARCHAR, UNIQUE  | Required. Stored in lowercase; unique constraint enforced.|
-| `phone`      | VARCHAR          | Optional. Whitespace removed; empty values become `NULL`. |
-| `password`   | VARCHAR          | Required. Stores bcrypt hash (10 salt rounds).            |
-
-> Ensure the table includes a unique index on `email` so duplicate registrations are prevented at the database level (the API expects MySQL error code `ER_DUP_ENTRY`).
 
 ## Business Logic and Data Flow
 1. **Registration (`POST /api/register`)**
@@ -156,12 +142,9 @@ Each query is executed against the shared connection pool exported by `db.js`.
 3. Ensure the MySQL database schema (at minimum the `Users` table) is in place.
 4. Start the server:
    ```bash
-   node backend/server.js
+   npm start
    ```
    The server listens on `PORT` specified in the environment or defaults to `3000`.
 
-## Extending the Backend
-- Add new routes in `backend/server.js`. Keep using parameterized SQL queries via `pool.execute`.
-- Extend the database by adding new tables and corresponding CRUD routes. Update the documentation to include new endpoints and queries.
-- Consider adding JWT-based session handling, request validation middleware, and comprehensive logging for production deployments.
+
 
