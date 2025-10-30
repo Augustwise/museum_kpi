@@ -186,6 +186,38 @@
   height: auto;
 }
 
+.table-wrapper {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.profile-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Montserrat, sans-serif;
+}
+
+.profile-table tr:nth-child(even) {
+  background-color: #f6f8f9;
+}
+
+.profile-table__label,
+.profile-table__value {
+  padding: 12px 16px;
+  border-bottom: 1px solid #dfe5e8;
+  font-size: 14px;
+  color: #333;
+}
+
+.profile-table__label {
+  font-weight: 600;
+  width: 40%;
+}
+
+.profile-table__value {
+  word-break: break-word;
+}
+
 * {
   box-sizing: border-box;
 }
