@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { URL } = require('url');
 const mysql = require('mysql2/promise');
 
@@ -27,9 +29,7 @@ function createPoolFromConnectionString(connectionString) {
   return pool;
 }
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  'mysql://doadmin:password@db-mysql-ams3-62405-do-user-27591002-0.e.db.ondigitalocean.com:25060/museum?ssl-mode=REQUIRED';
+const connectionString = process.env.DATABASE_URL;
 
 const pool = createPoolFromConnectionString(connectionString);
 
