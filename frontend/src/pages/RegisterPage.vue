@@ -409,7 +409,7 @@ const resetForm = () => {
   });
 };
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   markTouched("email");
   markTouched("password");
   markTouched("lastName");
@@ -430,7 +430,39 @@ const handleSubmit = () => {
     return;
   }
 
-  resetForm();
+  try {
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password,
+        lastName: form.lastName,
+        firstName: form.firstName,
+        middleName: form.middleName,
+        gender: form.gender,
+        birthDate: form.birthDate,
+        phone: form.phone,
+      }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(payload.error || "Не вдалося зареєструватися.");
+    }
+
+    if (payload.user) {
+      localStorage.setItem("museumUser", JSON.stringify(payload.user));
+    }
+
+    resetForm();
+    window.location.href = "./Exhibitions.html";
+  } catch (error) {
+    alert(error.message || "Не вдалося зареєструватися.");
+  }
 };
 
 

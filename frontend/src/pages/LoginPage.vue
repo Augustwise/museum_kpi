@@ -109,7 +109,7 @@ const markTouched = (field) => {
 const emailErrorVisible = computed(() => touched.email && Boolean(errors.email));
 const passwordErrorVisible = computed(() => touched.password && Boolean(errors.password));
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   markTouched('email');
   markTouched('password');
 
@@ -117,14 +117,39 @@ const handleSubmit = () => {
     return;
   }
 
-  alert('Вхід успішний!');
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value,
+      }),
+    });
 
-  email.value = '';
-  password.value = '';
+    const payload = await response.json().catch(() => ({}));
 
-  touched.email = false;
-  touched.password = false;
-  errors.email = '';
-  errors.password = '';
+    if (!response.ok) {
+      throw new Error(payload.error || 'Не вдалося увійти.');
+    }
+
+    if (payload.user) {
+      localStorage.setItem('museumUser', JSON.stringify(payload.user));
+    }
+
+    email.value = '';
+    password.value = '';
+
+    touched.email = false;
+    touched.password = false;
+    errors.email = '';
+    errors.password = '';
+
+    window.location.href = './Exhibitions.html';
+  } catch (error) {
+    alert(error.message || 'Не вдалося увійти.');
+  }
 };
 </script>
