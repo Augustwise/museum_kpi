@@ -218,6 +218,73 @@
   word-break: break-word;
 }
 
+.exhibitions-card {
+  width: 100%;
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exhibitions-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1f23;
+  text-align: left;
+}
+
+.exhibitions-subtitle {
+  font-size: 14px;
+  color: #4f5b67;
+  line-height: 1.5;
+}
+
+.exhibitions-table-wrapper {
+  width: 100%;
+}
+
+.exhibitions-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+  font-family: Montserrat, sans-serif;
+}
+
+.exhibitions-table th,
+.exhibitions-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #dfe5e8;
+  text-align: left;
+  font-size: 14px;
+  color: #2b333a;
+}
+
+.exhibitions-table thead {
+  background-color: #eef2f5;
+}
+
+.exhibitions-table tbody tr:nth-child(even) {
+  background-color: #f9fbfc;
+}
+
+.exhibitions-table__image {
+  width: 80px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #dfe5e8;
+}
+
+.exhibitions-message {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #4f5b67;
+}
+
+.exhibitions-message--error {
+  color: #c0392b;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -869,7 +936,7 @@ a {
 
 .auth-card {
   width: 100%;
-  max-width: 860px;
+  max-width: 908px;
   background: #fff;
   color: #0f0e08;
   border-radius: 12px;
