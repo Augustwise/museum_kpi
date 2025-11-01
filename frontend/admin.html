@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Адмін панель</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/admin.css" />
+  </head>
+  <body>
+    <main class="admin-page">
+      <section class="card" id="login-section">
+        <h1 class="card__title">Вхід для адміністратора</h1>
+        <form class="form" id="admin-login-form">
+          <label class="form__label">
+            <span class="form__label-text">Електронна пошта</span>
+            <input
+              class="form__input"
+              type="email"
+              name="email"
+              id="admin-email"
+              required
+              autocomplete="username"
+            />
+          </label>
+          <label class="form__label">
+            <span class="form__label-text">Пароль</span>
+            <input
+              class="form__input"
+              type="password"
+              name="password"
+              id="admin-password"
+              required
+              autocomplete="current-password"
+            />
+          </label>
+          <button class="button" type="submit">Увійти</button>
+          <p class="form__hint">
+            Акаунти адміністраторів створюються вручну у базі даних.
+          </p>
+        </form>
+      </section>
+
+      <section class="panel" id="admin-section" hidden>
+        <header class="panel__header">
+          <div>
+            <h1 class="panel__title">Адмін панель</h1>
+            <p class="panel__subtitle" id="admin-name"></p>
+          </div>
+          <button class="button button--light" id="admin-logout" type="button">
+            Вийти
+          </button>
+        </header>
+
+        <section class="panel__card">
+          <h2 class="panel__card-title" id="form-title">Створити нову виставку</h2>
+          <form class="form" id="exhibition-form">
+            <div class="form__row">
+              <label class="form__label">
+                <span class="form__label-text">Назва</span>
+                <input class="form__input" type="text" id="exhibition-name" required />
+              </label>
+              <label class="form__label">
+                <span class="form__label-text">Зображення (URL)</span>
+                <input class="form__input" type="url" id="exhibition-image" placeholder="https://" />
+              </label>
+            </div>
+            <div class="form__row">
+              <label class="form__label">
+                <span class="form__label-text">Дата початку</span>
+                <input class="form__input" type="date" id="exhibition-start" required />
+              </label>
+              <label class="form__label">
+                <span class="form__label-text">Дата завершення</span>
+                <input class="form__input" type="date" id="exhibition-end" required />
+              </label>
+              <label class="form__label">
+                <span class="form__label-text">Вільні місця</span>
+                <input class="form__input" type="number" id="exhibition-seats" min="0" required />
+              </label>
+            </div>
+            <div class="form__actions">
+              <button class="button" type="submit" id="form-submit">Зберегти</button>
+              <button class="button button--light" type="button" id="cancel-edit" hidden>
+                Скасувати
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel__card">
+          <h2 class="panel__card-title">Розклад виставок</h2>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Назва</th>
+                  <th>Початок</th>
+                  <th>Завершення</th>
+                  <th>Вільні місця</th>
+                  <th>Адміністратор</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="exhibitions-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <div class="notification" id="notification" role="status" aria-live="polite"></div>
+    </main>
+
+    <script src="./scripts/admin.js" defer></script>
+  </body>
+</html>
