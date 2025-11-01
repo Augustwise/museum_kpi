@@ -22,6 +22,34 @@
           <tbody id="profile-table-body"></tbody>
         </table>
       </div>
+
+      <section class="exhibitions-card">
+        <h2 class="exhibitions-title">Доступні виставки</h2>
+        <p class="exhibitions-subtitle">
+          Перегляньте актуальні виставки та оберіть ту, що вас зацікавила.
+        </p>
+        <div class="table-wrapper exhibitions-table-wrapper">
+          <table class="exhibitions-table" id="exhibitions-table">
+            <thead>
+              <tr>
+                <th scope="col">Зображення</th>
+                <th scope="col">Назва</th>
+                <th scope="col">Період</th>
+                <th scope="col">Вільні місця</th>
+                <th scope="col">Адміністратор</th>
+              </tr>
+            </thead>
+            <tbody id="exhibitions-table-body"></tbody>
+          </table>
+          <p
+            class="exhibitions-message"
+            id="exhibitions-message"
+            hidden
+            aria-live="polite"
+          ></p>
+        </div>
+      </section>
+
       <div class="auth-actions">
         <button class="auth-submit" id="logout-button" type="button">Вийти</button>
       </div>

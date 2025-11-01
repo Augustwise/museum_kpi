@@ -197,6 +197,33 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+app.get('/api/exhibitions', async (_req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT e.id,
+              e.name,
+              e.image_url,
+              e.start_date,
+              e.end_date,
+              e.available_seats,
+              e.admin_id,
+              CONCAT(a.first_name, ' ', a.last_name) AS admin_name
+         FROM Exhibitions e
+         JOIN Admins a ON e.admin_id = a.id
+        WHERE e.available_seats > 0
+        ORDER BY e.start_date, e.end_date, e.name`
+    );
+
+    const exhibitions = rows.map(mapExhibition);
+    return res.json({ exhibitions });
+  } catch (error) {
+    console.error('Public exhibitions fetch error:', error);
+    return res
+      .status(500)
+      .json({ error: 'Не вдалося отримати список виставок.' });
+  }
+});
+
 app.post('/api/admin/login', async (req, res) => {
   const { email, password } = req.body || {};
 

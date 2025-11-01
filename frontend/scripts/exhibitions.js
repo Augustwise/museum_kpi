@@ -1,6 +1,109 @@
 const profileTableBody = document.getElementById('profile-table-body');
 const emailElement = document.getElementById('user-email');
 const logoutButton = document.getElementById('logout-button');
+const exhibitionsTableBody = document.getElementById('exhibitions-table-body');
+const exhibitionsMessage = document.getElementById('exhibitions-message');
+
+function setExhibitionsMessage(text, options = {}) {
+  if (!exhibitionsMessage) {
+    return;
+  }
+
+  const { isError = false } = options;
+
+  exhibitionsMessage.textContent = text || '';
+  exhibitionsMessage.hidden = !text;
+
+  if (isError) {
+    exhibitionsMessage.classList.add('exhibitions-message--error');
+  } else {
+    exhibitionsMessage.classList.remove('exhibitions-message--error');
+  }
+}
+
+function formatDate(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toLocaleDateString('uk-UA');
+}
+
+function formatPeriod(startDate, endDate) {
+  const start = formatDate(startDate);
+  const end = formatDate(endDate);
+
+  if (start && end) {
+    if (start === end) {
+      return start;
+    }
+
+    return `${start} — ${end}`;
+  }
+
+  return start || end || '—';
+}
+
+function renderExhibitions(exhibitions) {
+  if (!exhibitionsTableBody) {
+    return;
+  }
+
+  exhibitionsTableBody.innerHTML = '';
+
+  if (!Array.isArray(exhibitions) || exhibitions.length === 0) {
+    setExhibitionsMessage('Наразі немає доступних виставок.');
+    return;
+  }
+
+  exhibitions.forEach((exhibition) => {
+    const row = document.createElement('tr');
+
+    const imageCell = document.createElement('td');
+
+    if (exhibition.imageUrl) {
+      const image = document.createElement('img');
+      image.src = exhibition.imageUrl;
+      image.alt = `Зображення виставки ${exhibition.name || 'без назви'}`;
+      image.loading = 'lazy';
+      image.className = 'exhibitions-table__image';
+      imageCell.appendChild(image);
+    } else {
+      imageCell.textContent = '—';
+    }
+
+    row.appendChild(imageCell);
+
+    const nameCell = document.createElement('td');
+    nameCell.textContent = exhibition.name || 'Без назви';
+    row.appendChild(nameCell);
+
+    const periodCell = document.createElement('td');
+    periodCell.textContent = formatPeriod(
+      exhibition.startDate,
+      exhibition.endDate
+    );
+    row.appendChild(periodCell);
+
+    const seatsCell = document.createElement('td');
+    seatsCell.textContent = String(exhibition.availableSeats ?? '—');
+    row.appendChild(seatsCell);
+
+    const adminCell = document.createElement('td');
+    adminCell.textContent = exhibition.adminName || '—';
+    row.appendChild(adminCell);
+
+    exhibitionsTableBody.appendChild(row);
+  });
+
+  setExhibitionsMessage('');
+}
 
 function renderUserDetails(user) {
   if (!user || !profileTableBody) {
@@ -33,6 +136,34 @@ function renderUserDetails(user) {
   });
 }
 
+async function loadExhibitions() {
+  if (!exhibitionsTableBody) {
+    return;
+  }
+
+  exhibitionsTableBody.innerHTML = '';
+  setExhibitionsMessage('Завантаження виставок...');
+
+  try {
+    const response = await fetch('/api/exhibitions');
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = payload.error || 'Не вдалося отримати список виставок.';
+      throw new Error(error);
+    }
+
+    renderExhibitions(payload.exhibitions || []);
+  } catch (error) {
+    setExhibitionsMessage(
+      error?.message || 'Не вдалося отримати список виставок.',
+      {
+        isError: true,
+      }
+    );
+  }
+}
+
 function init() {
   const storedUser = localStorage.getItem('museumUser');
 
@@ -56,6 +187,7 @@ function init() {
   }
 
   renderUserDetails(user);
+  loadExhibitions();
 }
 
 if (logoutButton) {
