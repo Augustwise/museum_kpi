@@ -1,5 +1,7 @@
 const ADMIN_KEY = 'museumAdmin';
 
+let exhibitionFormController = null;
+
 function readAdmin() {
   try {
     const raw = localStorage.getItem(ADMIN_KEY);
@@ -40,6 +42,354 @@ function formatDatePart(value) {
 
 function formatDateRange(startDate, endDate) {
   return `${formatDatePart(startDate)} — ${formatDatePart(endDate)}`;
+}
+
+function initExhibitionFormApp() {
+  if (!window.Vue) {
+    console.error('Vue is required for the exhibition form.');
+    return null;
+  }
+
+  const target = document.getElementById('exhibitionApp');
+
+  if (!target) {
+    return null;
+  }
+
+  const { createApp, reactive, ref, computed, watch } = window.Vue;
+
+  const defaultFormState = () => ({
+    name: '',
+    imageUrl: '',
+    startDate: '',
+    endDate: '',
+    availableSeats: '',
+  });
+
+  const defaultErrorsState = () => ({
+    name: '',
+    imageUrl: '',
+    startDate: '',
+    endDate: '',
+    availableSeats: '',
+  });
+
+  const defaultTouchedState = () => ({
+    name: false,
+    imageUrl: false,
+    startDate: false,
+    endDate: false,
+    availableSeats: false,
+  });
+
+  const validateName = (value) => {
+    if (!value.trim()) {
+      return 'Введіть назву виставки';
+    }
+
+    if (value.trim().length < 3) {
+      return 'Назва має містити щонайменше 3 символи';
+    }
+
+    return '';
+  };
+
+  const validateImageUrl = (value) => {
+    if (!value) {
+      return '';
+    }
+
+    try {
+      const parsed = new URL(value);
+
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return 'Посилання має бути дійсним URL';
+      }
+
+      return '';
+    } catch (error) {
+      return 'Посилання має бути дійсним URL';
+    }
+  };
+
+  const validateStartDate = (startDate, endDate) => {
+    if (!startDate) {
+      return 'Оберіть дату початку';
+    }
+
+    if (endDate && startDate > endDate) {
+      return 'Дата початку не може бути пізніше за дату завершення';
+    }
+
+    return '';
+  };
+
+  const validateEndDate = (endDate, startDate) => {
+    if (!endDate) {
+      return 'Оберіть дату завершення';
+    }
+
+    if (startDate && endDate < startDate) {
+      return 'Дата завершення не може бути раніше дати початку';
+    }
+
+    return '';
+  };
+
+  const validateSeats = (value) => {
+    if (value === '') {
+      return 'Вкажіть кількість місць';
+    }
+
+    const seats = Number(value);
+
+    if (!Number.isInteger(seats) || seats < 0) {
+      return 'Вкажіть коректну кількість місць';
+    }
+
+    return '';
+  };
+
+  const app = createApp({
+    setup() {
+      const form = reactive(defaultFormState());
+      const errors = reactive(defaultErrorsState());
+      const touched = reactive(defaultTouchedState());
+      const isSubmitting = ref(false);
+      const isEditing = ref(false);
+      const currentId = ref(null);
+
+      const updateError = (field) => {
+        if (field === 'name') {
+          errors.name = validateName(form.name);
+        }
+
+        if (field === 'imageUrl') {
+          errors.imageUrl = validateImageUrl(form.imageUrl);
+        }
+
+        if (field === 'startDate') {
+          errors.startDate = validateStartDate(form.startDate, form.endDate);
+        }
+
+        if (field === 'endDate') {
+          errors.endDate = validateEndDate(form.endDate, form.startDate);
+        }
+
+        if (field === 'availableSeats') {
+          errors.availableSeats = validateSeats(form.availableSeats);
+        }
+      };
+
+      const markTouched = (field) => {
+        touched[field] = true;
+        updateError(field);
+      };
+
+      watch(
+        () => form.name,
+        () => {
+          if (touched.name) {
+            updateError('name');
+          }
+        }
+      );
+
+      watch(
+        () => form.imageUrl,
+        () => {
+          if (touched.imageUrl) {
+            updateError('imageUrl');
+          }
+        }
+      );
+
+      watch(
+        () => form.startDate,
+        () => {
+          if (touched.startDate) {
+            updateError('startDate');
+          }
+
+          if (touched.endDate) {
+            updateError('endDate');
+          }
+        }
+      );
+
+      watch(
+        () => form.endDate,
+        () => {
+          if (touched.endDate) {
+            updateError('endDate');
+          }
+
+          if (touched.startDate) {
+            updateError('startDate');
+          }
+        }
+      );
+
+      watch(
+        () => form.availableSeats,
+        () => {
+          if (touched.availableSeats) {
+            updateError('availableSeats');
+          }
+        }
+      );
+
+      const nameErrorVisible = computed(
+        () => touched.name && Boolean(errors.name)
+      );
+
+      const imageErrorVisible = computed(
+        () => touched.imageUrl && Boolean(errors.imageUrl)
+      );
+
+      const startDateErrorVisible = computed(
+        () => touched.startDate && Boolean(errors.startDate)
+      );
+
+      const endDateErrorVisible = computed(
+        () => touched.endDate && Boolean(errors.endDate)
+      );
+
+      const seatsErrorVisible = computed(
+        () => touched.availableSeats && Boolean(errors.availableSeats)
+      );
+
+      const submitLabel = computed(() =>
+        isEditing.value ? 'Оновити' : 'Зберегти'
+      );
+
+      const hasErrors = () =>
+        Boolean(
+          errors.name ||
+            errors.imageUrl ||
+            errors.startDate ||
+            errors.endDate ||
+            errors.availableSeats
+        );
+
+      const resetTouched = () => {
+        Object.keys(touched).forEach((key) => {
+          touched[key] = false;
+        });
+      };
+
+      const resetErrors = () => {
+        Object.keys(errors).forEach((key) => {
+          errors[key] = '';
+        });
+      };
+
+      const resetForm = () => {
+        form.name = '';
+        form.imageUrl = '';
+        form.startDate = '';
+        form.endDate = '';
+        form.availableSeats = '';
+        currentId.value = null;
+        isEditing.value = false;
+        resetErrors();
+        resetTouched();
+      };
+
+      const setFormData = (exhibition) => {
+        form.name = exhibition.name || '';
+        form.imageUrl = exhibition.imageUrl || '';
+        form.startDate = exhibition.startDate || '';
+        form.endDate = exhibition.endDate || '';
+        form.availableSeats = exhibition.availableSeats?.toString() || '';
+        currentId.value = exhibition.id || null;
+        isEditing.value = Boolean(exhibition.id);
+        resetErrors();
+        resetTouched();
+      };
+
+      const markAllTouched = () => {
+        markTouched('name');
+        markTouched('imageUrl');
+        markTouched('startDate');
+        markTouched('endDate');
+        markTouched('availableSeats');
+      };
+
+      const handleSubmit = async () => {
+        markAllTouched();
+
+        if (hasErrors()) {
+          return;
+        }
+
+        const adminData = readAdmin();
+
+        if (!adminData) {
+          alert('Потрібно авторизуватися.');
+          return;
+        }
+
+        const payload = {
+          adminId: adminData.id,
+          name: form.name.trim(),
+          imageUrl: form.imageUrl ? form.imageUrl : null,
+          startDate: form.startDate,
+          endDate: form.endDate,
+          availableSeats: Number(form.availableSeats),
+        };
+
+        const url = currentId.value
+          ? `/api/admin/exhibitions/${currentId.value}`
+          : '/api/admin/exhibitions';
+
+        const method = currentId.value ? 'PUT' : 'POST';
+
+        isSubmitting.value = true;
+
+        try {
+          const response = await fetch(url, {
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Не вдалося зберегти виставку.');
+          }
+
+          resetForm();
+          await refreshExhibitions();
+        } catch (error) {
+          alert(error.message || 'Не вдалося зберегти виставку.');
+        } finally {
+          isSubmitting.value = false;
+        }
+      };
+
+      return {
+        form,
+        errors,
+        isSubmitting,
+        submitLabel,
+        nameErrorVisible,
+        imageErrorVisible,
+        startDateErrorVisible,
+        endDateErrorVisible,
+        seatsErrorVisible,
+        markTouched,
+        handleSubmit,
+        resetForm,
+        setFormData,
+      };
+    },
+  });
+
+  return app.mount('#exhibitionApp');
 }
 
 function renderTable(exhibitions) {
@@ -95,7 +445,7 @@ function renderTable(exhibitions) {
     editButton.type = 'button';
     editButton.className = 'table-button';
     editButton.textContent = 'Редагувати';
-    editButton.addEventListener('click', () => populateForm(exhibition));
+    editButton.addEventListener('click', () => openExhibitionEditor(exhibition));
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
@@ -109,18 +459,6 @@ function renderTable(exhibitions) {
 
     tbody.appendChild(row);
   });
-}
-
-function setSubmitButtonText(isEditing) {
-  const button = document.querySelector(
-    '#exhibitionForm button[type="submit"]'
-  );
-
-  if (!button) {
-    return;
-  }
-
-  button.textContent = isEditing ? 'Оновити' : 'Зберегти';
 }
 
 async function fetchExhibitions() {
@@ -141,32 +479,12 @@ async function fetchExhibitions() {
   return payload.exhibitions || [];
 }
 
-function populateForm(exhibition) {
-  const form = document.getElementById('exhibitionForm');
-
-  if (!form) {
-    return;
-  }
-
-  document.getElementById('exhibitionId').value = exhibition.id;
-  document.getElementById('exhibitionName').value = exhibition.name;
-  document.getElementById('exhibitionImage').value = exhibition.imageUrl || '';
-  document.getElementById('exhibitionStart').value = exhibition.startDate;
-  document.getElementById('exhibitionEnd').value = exhibition.endDate;
-  document.getElementById('exhibitionSeats').value = exhibition.availableSeats;
-  setSubmitButtonText(true);
+function openExhibitionEditor(exhibition) {
+  exhibitionFormController?.setFormData(exhibition);
 }
 
-function resetForm() {
-  const form = document.getElementById('exhibitionForm');
-
-  if (!form) {
-    return;
-  }
-
-  form.reset();
-  document.getElementById('exhibitionId').value = '';
-  setSubmitButtonText(false);
+function resetExhibitionForm() {
+  exhibitionFormController?.resetForm();
 }
 
 async function handleDelete(exhibitionId) {
@@ -195,7 +513,7 @@ async function handleDelete(exhibitionId) {
     }
 
     await refreshExhibitions();
-    resetForm();
+    resetExhibitionForm();
   } catch (error) {
     alert(error.message || 'Не вдалося видалити виставку.');
   }
@@ -230,15 +548,18 @@ function toggleVisibility(isAuthorized) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  exhibitionFormController = initExhibitionFormApp();
+
   const loginForm = document.getElementById('adminLoginForm');
-  const exhibitionForm = document.getElementById('exhibitionForm');
   const logoutButton = document.getElementById('logoutButton');
-  const resetFormButton = document.getElementById('resetFormButton');
 
   const admin = readAdmin();
   const isAuthorized = Boolean(admin);
   toggleVisibility(isAuthorized);
-  setSubmitButtonText(false);
+
+  if (!isAuthorized) {
+    resetExhibitionForm();
+  }
 
   if (isAuthorized) {
     refreshExhibitions();
@@ -277,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         saveAdmin(payload.admin);
         toggleVisibility(true);
-        resetForm();
+        resetExhibitionForm();
         await refreshExhibitions();
         loginForm.reset();
       } catch (error) {
@@ -286,77 +607,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (exhibitionForm) {
-    exhibitionForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const adminData = readAdmin();
-
-      if (!adminData) {
-        alert('Потрібно авторизуватися.');
-        return;
-      }
-
-      const id = document.getElementById('exhibitionId').value;
-      const name = document.getElementById('exhibitionName').value.trim();
-      const imageUrl = document.getElementById('exhibitionImage').value.trim();
-      const startDate = document.getElementById('exhibitionStart').value;
-      const endDate = document.getElementById('exhibitionEnd').value;
-      const availableSeats = document.getElementById('exhibitionSeats').value;
-
-      if (!name || !startDate || !endDate) {
-        alert('Будь ласка, заповніть усі обов\'язкові поля.');
-        return;
-      }
-
-      const payload = {
-        adminId: adminData.id,
-        name,
-        imageUrl: imageUrl || null,
-        startDate,
-        endDate,
-        availableSeats,
-      };
-
-      const url = id
-        ? `/api/admin/exhibitions/${id}`
-        : '/api/admin/exhibitions';
-
-      const method = id ? 'PUT' : 'POST';
-
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Не вдалося зберегти виставку.');
-        }
-
-        resetForm();
-        await refreshExhibitions();
-      } catch (error) {
-        alert(error.message || 'Не вдалося зберегти виставку.');
-      }
-    });
-  }
-
-  if (resetFormButton) {
-    resetFormButton.addEventListener('click', () => {
-      resetForm();
-    });
-  }
-
   if (logoutButton) {
     logoutButton.addEventListener('click', () => {
       saveAdmin(null);
-      resetForm();
+      resetExhibitionForm();
       toggleVisibility(false);
     });
   }

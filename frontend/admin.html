@@ -117,6 +117,17 @@
         color: #1d1f22;
       }
 
+      .input-error {
+        border-color: #c62828;
+        background-color: #fdecea;
+      }
+
+      .field-error {
+        color: #c62828;
+        font-size: 0.875rem;
+        margin: 0;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
@@ -217,33 +228,84 @@
 
       <section id="managementSection" class="hidden">
         <h2>Керування виставками</h2>
-        <form id="exhibitionForm">
-          <input type="hidden" id="exhibitionId" />
-          <label>
-            Назва виставки
-            <input type="text" id="exhibitionName" name="name" required />
-          </label>
-          <label>
-            Посилання на зображення (опційно)
-            <input type="url" id="exhibitionImage" name="imageUrl" placeholder="https://" />
-          </label>
-          <label>
-            Дата початку
-            <input type="date" id="exhibitionStart" name="startDate" required />
-          </label>
-          <label>
-            Дата завершення
-            <input type="date" id="exhibitionEnd" name="endDate" required />
-          </label>
-          <label>
-            Доступні місця
-            <input type="number" id="exhibitionSeats" name="availableSeats" min="0" step="1" required />
-          </label>
-          <div class="form-actions">
-            <button type="submit">Зберегти</button>
-            <button type="button" id="resetFormButton" class="secondary-button">Очистити форму</button>
-          </div>
-        </form>
+        <div id="exhibitionApp">
+          <form @submit.prevent="handleSubmit">
+            <label>
+              Назва виставки
+              <input
+                v-model.trim="form.name"
+                :class="{ 'input-error': nameErrorVisible }"
+                type="text"
+                name="name"
+                required
+                @blur="markTouched('name')"
+              />
+              <p v-if="nameErrorVisible" class="field-error">{{ errors.name }}</p>
+            </label>
+            <label>
+              Посилання на зображення (опційно)
+              <input
+                v-model.trim="form.imageUrl"
+                :class="{ 'input-error': imageErrorVisible }"
+                type="url"
+                name="imageUrl"
+                placeholder="https://"
+                @blur="markTouched('imageUrl')"
+              />
+              <p v-if="imageErrorVisible" class="field-error">{{ errors.imageUrl }}</p>
+            </label>
+            <label>
+              Дата початку
+              <input
+                v-model="form.startDate"
+                :class="{ 'input-error': startDateErrorVisible }"
+                type="date"
+                name="startDate"
+                required
+                @blur="markTouched('startDate')"
+              />
+              <p v-if="startDateErrorVisible" class="field-error">{{ errors.startDate }}</p>
+            </label>
+            <label>
+              Дата завершення
+              <input
+                v-model="form.endDate"
+                :class="{ 'input-error': endDateErrorVisible }"
+                type="date"
+                name="endDate"
+                required
+                @blur="markTouched('endDate')"
+              />
+              <p v-if="endDateErrorVisible" class="field-error">{{ errors.endDate }}</p>
+            </label>
+            <label>
+              Доступні місця
+              <input
+                v-model.trim="form.availableSeats"
+                :class="{ 'input-error': seatsErrorVisible }"
+                type="number"
+                name="availableSeats"
+                min="0"
+                step="1"
+                required
+                @blur="markTouched('availableSeats')"
+              />
+              <p v-if="seatsErrorVisible" class="field-error">{{ errors.availableSeats }}</p>
+            </label>
+            <div class="form-actions">
+              <button type="submit" :disabled="isSubmitting">{{ submitLabel }}</button>
+              <button
+                type="button"
+                id="resetFormButton"
+                class="secondary-button"
+                :disabled="isSubmitting"
+                @click="resetForm()"
+              >
+                Очистити форму
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
 
       <section id="scheduleSection" class="hidden">
@@ -263,6 +325,7 @@
       </section>
     </main>
 
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="./scripts/admin.js" defer></script>
   </body>
 </html>
