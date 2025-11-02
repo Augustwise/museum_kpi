@@ -75,13 +75,23 @@ async function findAdminById(adminId) {
   return rows[0] || null;
 }
 
+const PHONE_REGEX = /^\+380\d{9}$/;
+
 function normalizePhone(phone) {
-  if (!phone) {
+  if (typeof phone !== 'string') {
     return null;
   }
 
   const cleaned = phone.replace(/\s+/g, '');
   return cleaned.length ? cleaned : null;
+}
+
+function isValidPhone(phone) {
+  if (typeof phone !== 'string') {
+    return false;
+  }
+
+  return PHONE_REGEX.test(phone);
 }
 
 app.post('/api/register', async (req, res) => {
@@ -114,6 +124,12 @@ app.post('/api/register', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const normalizedPhone = normalizePhone(phone);
+
+    if (normalizedPhone && !isValidPhone(normalizedPhone)) {
+      return res
+        .status(400)
+        .json({ error: 'Номер телефону має бути у форматі +380XXXXXXXXX.' });
+    }
 
     const [result] = await pool.execute(
       `INSERT INTO Users (first_name, last_name, birth_date, gender, email, phone, password)
@@ -194,6 +210,187 @@ app.post('/api/login', async (req, res) => {
     return res
       .status(500)
       .json({ error: 'Сталася помилка під час авторизації.' });
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res
+      .status(400)
+      .json({ error: 'Некоректний ідентифікатор користувача.' });
+  }
+
+  const { email, phone, password, currentPassword } = req.body || {};
+
+  if (
+    email === undefined &&
+    phone === undefined &&
+    password === undefined
+  ) {
+    return res
+      .status(400)
+      .json({ error: 'Не вказано даних для оновлення.' });
+  }
+
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, first_name, last_name, birth_date, gender, email, phone, password
+         FROM Users
+        WHERE id = ?`,
+      [userId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: 'Користувача не знайдено.' });
+    }
+
+    const dbUser = rows[0];
+    const updates = [];
+    const params = [];
+
+    if (email !== undefined) {
+      if (typeof email !== 'string') {
+        return res.status(400).json({ error: 'Некоректна електронна пошта.' });
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (!normalizedEmail) {
+        return res.status(400).json({ error: 'Некоректна електронна пошта.' });
+      }
+
+      if (normalizedEmail !== dbUser.email) {
+        const [existingEmailRows] = await pool.execute(
+          `SELECT id FROM Users WHERE email = ? AND id <> ?`,
+          [normalizedEmail, userId]
+        );
+
+        if (existingEmailRows.length) {
+          return res
+            .status(409)
+            .json({ error: 'Користувач з такою електронною поштою вже існує.' });
+        }
+
+        updates.push('email = ?');
+        params.push(normalizedEmail);
+      }
+    }
+
+    if (phone !== undefined) {
+      let normalizedPhone = null;
+
+      if (phone === null) {
+        normalizedPhone = null;
+      } else if (typeof phone === 'string') {
+        normalizedPhone = normalizePhone(phone);
+
+        if (normalizedPhone && !isValidPhone(normalizedPhone)) {
+          return res
+            .status(400)
+            .json({ error: 'Номер телефону має бути у форматі +380XXXXXXXXX.' });
+        }
+      } else {
+        return res.status(400).json({ error: 'Некоректний номер телефону.' });
+      }
+
+      const currentPhone =
+        typeof dbUser.phone === 'string' ? normalizePhone(dbUser.phone) : null;
+
+      if (normalizedPhone !== currentPhone) {
+        updates.push('phone = ?');
+        params.push(normalizedPhone);
+      }
+    }
+
+    if (password !== undefined) {
+      if (typeof password !== 'string' || !password.trim()) {
+        return res
+          .status(400)
+          .json({ error: 'Новий пароль не може бути порожнім.' });
+      }
+
+      if (password.trim().length < 6) {
+        return res
+          .status(400)
+          .json({ error: 'Пароль має містити щонайменше 6 символів.' });
+      }
+
+      if (!currentPassword || typeof currentPassword !== 'string') {
+        return res
+          .status(400)
+          .json({ error: 'Поточний пароль є обов\'язковим.' });
+      }
+
+      let passwordsMatch = false;
+
+      try {
+        passwordsMatch = await bcrypt.compare(currentPassword, dbUser.password);
+      } catch (compareError) {
+        console.warn('User password compare warning:', compareError);
+      }
+
+      if (!passwordsMatch) {
+        return res
+          .status(400)
+          .json({ error: 'Поточний пароль вказано невірно.' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updates.push('password = ?');
+      params.push(hashedPassword);
+    }
+
+    if (!updates.length) {
+      return res.json({ user: mapUser(dbUser) });
+    }
+
+    const updateQuery = `UPDATE Users SET ${updates.join(', ')} WHERE id = ?`;
+    params.push(userId);
+
+    await pool.execute(updateQuery, params);
+
+    const [updatedRows] = await pool.execute(
+      `SELECT id, first_name, last_name, birth_date, gender, email, phone
+         FROM Users
+        WHERE id = ?`,
+      [userId]
+    );
+
+    return res.json({ user: mapUser(updatedRows[0]) });
+  } catch (error) {
+    console.error('User update error:', error);
+    return res
+      .status(500)
+      .json({ error: 'Не вдалося оновити дані акаунту.' });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  const userId = Number(req.params.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res
+      .status(400)
+      .json({ error: 'Некоректний ідентифікатор користувача.' });
+  }
+
+  try {
+    const [result] = await pool.execute(`DELETE FROM Users WHERE id = ?`, [
+      userId,
+    ]);
+
+    if (!result.affectedRows) {
+      return res.status(404).json({ error: 'Користувача не знайдено.' });
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error('User delete error:', error);
+    return res
+      .status(500)
+      .json({ error: 'Не вдалося видалити акаунт.' });
   }
 });
 

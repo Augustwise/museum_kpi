@@ -1,8 +1,8 @@
-const profileTableBody = document.getElementById("profile-table-body");
 const emailElement = document.getElementById("user-email");
 const logoutButton = document.getElementById("logout-button");
 const exhibitionsGrid = document.getElementById("exhibitions-grid");
 const exhibitionsMessage = document.getElementById("exhibitions-message");
+const accountSettingsLink = document.getElementById("account-settings-link");
 
 function setExhibitionsMessage(text, options = {}) {
   if (!exhibitionsMessage) {
@@ -154,37 +154,6 @@ function renderExhibitions(exhibitions) {
   setExhibitionsMessage("");
 }
 
-function renderUserDetails(user) {
-  if (!user || !profileTableBody) {
-    return;
-  }
-
-  const rows = [
-    { label: "Ім'я", value: user.firstName || "-" },
-    { label: "Прізвище", value: user.lastName || "-" },
-    { label: "Дата народження", value: user.birthDate || "-" },
-    { label: "Стать", value: user.gender || "-" },
-    { label: "Телефон", value: user.phone || "-" },
-  ];
-
-  profileTableBody.innerHTML = "";
-
-  rows.forEach((row) => {
-    const tr = document.createElement("tr");
-    const tdLabel = document.createElement("td");
-    tdLabel.textContent = row.label;
-    tdLabel.className = "has-text-weight-semibold has-text-dark";
-
-    const tdValue = document.createElement("td");
-    tdValue.textContent = row.value;
-    tdValue.className = "has-text-grey-darker";
-
-    tr.appendChild(tdLabel);
-    tr.appendChild(tdValue);
-    profileTableBody.appendChild(tr);
-  });
-}
-
 async function loadExhibitions() {
   if (!exhibitionsGrid) {
     return;
@@ -235,7 +204,9 @@ function init() {
     emailElement.textContent = user.email || "";
   }
 
-  renderUserDetails(user);
+  if (accountSettingsLink) {
+    accountSettingsLink.href = "./settings.html";
+  }
   loadExhibitions();
 }
 

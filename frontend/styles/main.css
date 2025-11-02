@@ -400,6 +400,36 @@
   background-color: #dfe5e8;
 }
 
+.exhibitions-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.exhibitions-settings-button {
+  align-self: flex-start;
+}
+
+.settings-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.settings-forms {
+  display: grid;
+  gap: 24px;
+}
+
+.settings-danger-zone {
+  border: 1px solid #f14668;
+  background-color: #fff5f7;
+}
+
 .exhibitions-table__image-button {
   display: inline-flex;
   padding: 0;
