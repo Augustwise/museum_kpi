@@ -9,6 +9,15 @@ const phoneInput = document.getElementById("phone-input");
 const currentPasswordInput = document.getElementById("current-password-input");
 const newPasswordInput = document.getElementById("new-password-input");
 const confirmPasswordInput = document.getElementById("confirm-password-input");
+const emailErrorEl = document.getElementById("email-error");
+const phoneErrorEl = document.getElementById("phone-error");
+const currentPasswordErrorEl = document.getElementById(
+  "current-password-error"
+);
+const newPasswordErrorEl = document.getElementById("new-password-error");
+const confirmPasswordErrorEl = document.getElementById(
+  "confirm-password-error"
+);
 const deleteAccountButton = document.getElementById("delete-account-button");
 const deleteModal = document.getElementById("delete-account-modal");
 const closeDeleteModalButton = document.getElementById("close-delete-modal");
@@ -26,17 +35,43 @@ function showMessage(text, options = {}) {
 
   const { isError = false } = options;
 
+  // Reset content and classes
   messageElement.textContent = text || "";
-
-  messageElement.classList.remove("is-danger", "is-success", "is-info");
+  messageElement.classList.remove(
+    "is-danger",
+    "is-success",
+    "is-info",
+    "error",
+    "success",
+    "show"
+  );
 
   if (!text) {
     messageElement.classList.add("is-hidden");
     return;
   }
 
+  // Apply custom notification visibility and status classes
   messageElement.classList.remove("is-hidden");
-  messageElement.classList.add(isError ? "is-danger" : "is-success");
+  messageElement.classList.add("show", isError ? "error" : "success");
+}
+
+function setFieldError(inputEl, errorEl, message) {
+  if (inputEl) {
+    inputEl.classList.add("auth-input--error");
+  }
+  if (errorEl) {
+    errorEl.textContent = message || "";
+  }
+}
+
+function clearFieldError(inputEl, errorEl) {
+  if (inputEl) {
+    inputEl.classList.remove("auth-input--error");
+  }
+  if (errorEl) {
+    errorEl.textContent = "";
+  }
 }
 
 function renderProfileTable(user) {
@@ -176,9 +211,7 @@ async function deleteAccount() {
     closeDeleteModal();
     window.location.href = "./register.html";
   } catch (error) {
-    showMessage(error.message || "Не вдалося видалити акаунт.", {
-      isError: true,
-    });
+    alert(error.message || "Не вдалося видалити акаунт.");
   } finally {
     if (confirmDeleteButton) {
       confirmDeleteButton.disabled = false;
@@ -205,7 +238,7 @@ function init() {
     return;
   }
 
-  showMessage("");
+  // No global messages on settings page; inline errors are used instead
 }
 
 if (emailForm) {
@@ -214,25 +247,31 @@ if (emailForm) {
 
     const nextEmail = (emailInput?.value || "").trim().toLowerCase();
 
+    clearFieldError(emailInput, emailErrorEl);
+
     if (!nextEmail) {
-      showMessage("Введіть нову електронну пошту.", { isError: true });
+      setFieldError(emailInput, emailErrorEl, "Введіть нову електронну пошту");
       return;
     }
 
     if (currentUser && nextEmail === (currentUser.email || "").toLowerCase()) {
-      showMessage("Введена електронна пошта збігається з поточною.", {
-        isError: true,
-      });
+      setFieldError(
+        emailInput,
+        emailErrorEl,
+        "Введена електронна пошта збігається з поточною"
+      );
       return;
     }
 
     try {
       await updateUserDetails({ email: nextEmail });
-      showMessage("Електронну пошту оновлено успішно.");
+      clearFieldError(emailInput, emailErrorEl);
     } catch (error) {
-      showMessage(error.message || "Не вдалося оновити електронну пошту.", {
-        isError: true,
-      });
+      setFieldError(
+        emailInput,
+        emailErrorEl,
+        error.message || "Не вдалося оновити електронну пошту"
+      );
     }
   });
 }
@@ -244,28 +283,37 @@ if (phoneForm) {
     const rawPhone = (phoneInput?.value || "").trim();
     const normalizedPhone = rawPhone.replace(/\s+/g, "");
 
+    clearFieldError(phoneInput, phoneErrorEl);
+
     if (normalizedPhone && !PHONE_REGEX.test(normalizedPhone)) {
-      showMessage("Номер телефону має бути у форматі +380XXXXXXXXX.", {
-        isError: true,
-      });
+      setFieldError(
+        phoneInput,
+        phoneErrorEl,
+        "Номер телефону має бути у форматі +380XXXXXXXXX"
+      );
       return;
     }
 
     const payload = { phone: normalizedPhone || null };
-    const currentNormalizedPhone = (currentUser?.phone || "").replace(/\s+/g, "");
+    const currentNormalizedPhone = (currentUser?.phone || "").replace(
+      /\s+/g,
+      ""
+    );
 
     if (normalizedPhone === currentNormalizedPhone) {
-      showMessage("Номер телефону не змінився.", { isError: true });
+      setFieldError(phoneInput, phoneErrorEl, "Номер телефону не змінився");
       return;
     }
 
     try {
       await updateUserDetails(payload);
-      showMessage("Номер телефону оновлено успішно.");
+      clearFieldError(phoneInput, phoneErrorEl);
     } catch (error) {
-      showMessage(error.message || "Не вдалося оновити номер телефону.", {
-        isError: true,
-      });
+      setFieldError(
+        phoneInput,
+        phoneErrorEl,
+        error.message || "Не вдалося оновити номер телефону"
+      );
     }
   });
 }
@@ -278,17 +326,58 @@ if (passwordForm) {
     const newPassword = newPasswordInput?.value || "";
     const confirmPassword = confirmPasswordInput?.value || "";
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      showMessage("Будь ласка, заповніть усі поля для зміни пароля.", {
-        isError: true,
-      });
-      return;
+    clearFieldError(currentPasswordInput, currentPasswordErrorEl);
+    clearFieldError(newPasswordInput, newPasswordErrorEl);
+    clearFieldError(confirmPasswordInput, confirmPasswordErrorEl);
+
+    let hasError = false;
+
+    if (!currentPassword) {
+      setFieldError(
+        currentPasswordInput,
+        currentPasswordErrorEl,
+        "Введіть поточний пароль"
+      );
+      hasError = true;
     }
 
-    if (newPassword !== confirmPassword) {
-      showMessage("Новий пароль та його підтвердження не збігаються.", {
-        isError: true,
-      });
+    if (!newPassword) {
+      setFieldError(
+        newPasswordInput,
+        newPasswordErrorEl,
+        "Введіть новий пароль"
+      );
+      hasError = true;
+    } else if (newPassword.length < 6) {
+      setFieldError(
+        newPasswordInput,
+        newPasswordErrorEl,
+        "Пароль має містити щонайменше 6 символів"
+      );
+      hasError = true;
+    }
+
+    if (!confirmPassword) {
+      setFieldError(
+        confirmPasswordInput,
+        confirmPasswordErrorEl,
+        "Підтвердіть новий пароль"
+      );
+      hasError = true;
+    } else if (
+      newPassword &&
+      confirmPassword &&
+      newPassword !== confirmPassword
+    ) {
+      setFieldError(
+        confirmPasswordInput,
+        confirmPasswordErrorEl,
+        "Новий пароль та його підтвердження не збігаються"
+      );
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -308,18 +397,21 @@ if (passwordForm) {
         confirmPasswordInput.value = "";
       }
 
-      showMessage("Пароль успішно змінено.");
+      clearFieldError(currentPasswordInput, currentPasswordErrorEl);
+      clearFieldError(newPasswordInput, newPasswordErrorEl);
+      clearFieldError(confirmPasswordInput, confirmPasswordErrorEl);
     } catch (error) {
-      showMessage(error.message || "Не вдалося змінити пароль.", {
-        isError: true,
-      });
+      setFieldError(
+        currentPasswordInput,
+        currentPasswordErrorEl,
+        error.message || "Не вдалося змінити пароль"
+      );
     }
   });
 }
 
 if (deleteAccountButton) {
   deleteAccountButton.addEventListener("click", () => {
-    showMessage("");
     openDeleteModal();
   });
 }

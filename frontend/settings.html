@@ -32,12 +32,7 @@
               </a>
             </div>
 
-            <div
-              id="settings-message"
-              class="notification is-hidden"
-              role="status"
-              aria-live="polite"
-            ></div>
+            
 
             <div class="table-container mt-4">
               <table class="table is-fullwidth" aria-describedby="settings-user-email">
@@ -60,6 +55,7 @@
                       required
                     />
                   </div>
+                  <p class="auth-error" id="email-error"></p>
                 </div>
                 <div class="field is-grouped is-justify-content-flex-end">
                   <div class="control">
@@ -78,9 +74,11 @@
                       id="phone-input"
                       type="tel"
                       name="phone"
+                      placeholder="+380 00 000 00 00"
                       autocomplete="tel"
                     />
                   </div>
+                  <p class="auth-error" id="phone-error"></p>
                 </div>
                 <div class="field is-grouped is-justify-content-flex-end">
                   <div class="control">
@@ -103,6 +101,7 @@
                       required
                     />
                   </div>
+                  <p class="auth-error" id="current-password-error"></p>
                 </div>
                 <div class="field">
                   <label class="label" for="new-password-input">Новий пароль</label>
@@ -117,6 +116,7 @@
                       required
                     />
                   </div>
+                  <p class="auth-error" id="new-password-error"></p>
                 </div>
                 <div class="field">
                   <label class="label" for="confirm-password-input">Підтвердження нового пароля</label>
@@ -131,6 +131,7 @@
                       required
                     />
                   </div>
+                  <p class="auth-error" id="confirm-password-error"></p>
                 </div>
                 <div class="field is-grouped is-justify-content-flex-end">
                   <div class="control">
