@@ -275,6 +275,29 @@
   background-color: #dfe5e8;
 }
 
+.exhibitions-table__image-button {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  cursor: zoom-in;
+}
+
+.exhibitions-table__image-button:focus-visible {
+  outline: 2px solid #2b333a;
+  outline-offset: 2px;
+}
+
+.exhibitions-lightbox__image {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
 .exhibitions-message {
   margin-top: 16px;
   font-size: 14px;

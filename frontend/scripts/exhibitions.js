@@ -50,6 +50,26 @@ function formatPeriod(startDate, endDate) {
   return start || end || '—';
 }
 
+function openExhibitionImage({ imageUrl, name }) {
+  if (!imageUrl) {
+    return;
+  }
+
+  const { basicLightbox } = window;
+
+  if (!basicLightbox || typeof basicLightbox.create !== 'function') {
+    return;
+  }
+
+  const lightboxImage = document.createElement('img');
+  lightboxImage.src = imageUrl;
+  lightboxImage.alt = `Зображення виставки ${name || 'без назви'}`;
+  lightboxImage.className = 'exhibitions-lightbox__image';
+
+  const instance = basicLightbox.create(lightboxImage.outerHTML);
+  instance.show();
+}
+
 function renderExhibitions(exhibitions) {
   if (!exhibitionsTableBody) {
     return;
@@ -68,12 +88,25 @@ function renderExhibitions(exhibitions) {
     const imageCell = document.createElement('td');
 
     if (exhibition.imageUrl) {
+      const imageButton = document.createElement('button');
+      imageButton.type = 'button';
+      imageButton.className = 'exhibitions-table__image-button';
+
       const image = document.createElement('img');
       image.src = exhibition.imageUrl;
       image.alt = `Зображення виставки ${exhibition.name || 'без назви'}`;
       image.loading = 'lazy';
       image.className = 'exhibitions-table__image';
-      imageCell.appendChild(image);
+
+      imageButton.appendChild(image);
+      imageButton.addEventListener('click', () =>
+        openExhibitionImage({
+          imageUrl: exhibition.imageUrl,
+          name: exhibition.name,
+        })
+      );
+
+      imageCell.appendChild(imageButton);
     } else {
       imageCell.textContent = '—';
     }
