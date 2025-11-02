@@ -13,52 +13,71 @@
     />
     <link
       rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+    />
+    <link
+      rel="stylesheet"
       href="https://unpkg.com/basiclightbox@5/dist/basicLightbox.min.css"
     />
     <link rel="stylesheet" href="./styles/main.css" />
   </head>
-  <body class="auth-page">
-    <div class="auth-card">
-      <h1 class="auth-title">Мій профіль</h1>
-      <p class="auth-actions" id="user-email"></p>
-      <div class="table-wrapper">
-        <table class="profile-table">
-          <tbody id="profile-table-body"></tbody>
-        </table>
-      </div>
+  <body class="has-background-light">
+    <section class="section">
+      <div class="container">
+        <div class="card">
+          <div class="card-content">
+            <div class="content">
+              <h1 class="title is-3">Мій профіль</h1>
+              <p class="subtitle is-6" id="user-email"></p>
+            </div>
+            <div class="table-container">
+              <table class="table is-fullwidth" aria-describedby="user-email">
+                <tbody id="profile-table-body"></tbody>
+              </table>
+            </div>
 
-      <section class="exhibitions-card">
-        <h2 class="exhibitions-title">Доступні виставки</h2>
-        <p class="exhibitions-subtitle">
-          Перегляньте актуальні виставки та оберіть ту, що вас зацікавила.
-        </p>
-        <div class="table-wrapper exhibitions-table-wrapper">
-          <table class="exhibitions-table" id="exhibitions-table">
-            <thead>
-              <tr>
-                <th scope="col">Зображення</th>
-                <th scope="col">Назва</th>
-                <th scope="col">Період</th>
-                <th scope="col">Вільні місця</th>
-                <th scope="col">Адміністратор</th>
-              </tr>
-            </thead>
-            <tbody id="exhibitions-table-body"></tbody>
-          </table>
-          <p
-            class="exhibitions-message"
-            id="exhibitions-message"
-            hidden
-            aria-live="polite"
-          ></p>
+            <section class="section pt-5 pb-0">
+              <div class="content">
+                <h2 class="title is-4">Доступні виставки</h2>
+                <p class="subtitle is-6">
+                  Перегляньте актуальні виставки та оберіть ту, що вас зацікавила.
+                </p>
+              </div>
+              <div class="table-container">
+                <table
+                  class="table is-fullwidth is-striped is-hoverable"
+                  id="exhibitions-table"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">Зображення</th>
+                      <th scope="col">Назва</th>
+                      <th scope="col">Період</th>
+                      <th scope="col">Вільні місця</th>
+                      <th scope="col">Адміністратор</th>
+                    </tr>
+                  </thead>
+                  <tbody id="exhibitions-table-body"></tbody>
+                </table>
+              </div>
+              <div
+                class="notification is-light is-info mt-4"
+                id="exhibitions-message"
+                hidden
+                aria-live="polite"
+              ></div>
+            </section>
+
+            <div class="mt-5">
+              <button class="button is-link is-fullwidth" id="logout-button" type="button">
+                Вийти
+              </button>
+            </div>
+          </div>
         </div>
-      </section>
-
-      <div class="auth-actions">
-        <button class="auth-submit" id="logout-button" type="button">Вийти</button>
       </div>
-    </div>
-
+    </section>
+  
     <script src="https://unpkg.com/basiclightbox@5/dist/basicLightbox.min.js"></script>
     <script type="module" src="./scripts/exhibitions.js"></script>
   </body>
