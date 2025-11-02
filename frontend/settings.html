@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Налаштування акаунту — NAMU</title>
+    <link rel="icon" type="image/x-icon" href="./images/NAMU_logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+    />
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body class="has-background-light">
+    <section class="section">
+      <div class="container">
+        <div class="card">
+          <div class="card-content">
+            <div class="settings-page-header">
+              <div class="content">
+                <h1 class="title is-3">Налаштування акаунту</h1>
+                <p class="subtitle is-6" id="settings-user-email"></p>
+              </div>
+              <a class="button is-light" href="./Exhibitions.html">
+                ← Повернутися до виставок
+              </a>
+            </div>
+
+            <div
+              id="settings-message"
+              class="notification is-hidden"
+              role="status"
+              aria-live="polite"
+            ></div>
+
+            <div class="table-container mt-4">
+              <table class="table is-fullwidth" aria-describedby="settings-user-email">
+                <tbody id="settings-profile-table"></tbody>
+              </table>
+            </div>
+
+            <div class="settings-forms mt-5">
+              <form class="box" id="email-form">
+                <h2 class="title is-5">Оновити електронну пошту</h2>
+                <div class="field">
+                  <label class="label" for="email-input">Нова електронна пошта</label>
+                  <div class="control">
+                    <input
+                      class="input"
+                      id="email-input"
+                      type="email"
+                      name="email"
+                      autocomplete="email"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="field is-grouped is-justify-content-flex-end">
+                  <div class="control">
+                    <button class="button is-link" type="submit">Зберегти</button>
+                  </div>
+                </div>
+              </form>
+
+              <form class="box" id="phone-form">
+                <h2 class="title is-5">Оновити номер телефону</h2>
+                <div class="field">
+                  <label class="label" for="phone-input">Новий номер телефону</label>
+                  <div class="control">
+                    <input
+                      class="input"
+                      id="phone-input"
+                      type="tel"
+                      name="phone"
+                      autocomplete="tel"
+                    />
+                  </div>
+                </div>
+                <div class="field is-grouped is-justify-content-flex-end">
+                  <div class="control">
+                    <button class="button is-link" type="submit">Зберегти</button>
+                  </div>
+                </div>
+              </form>
+
+              <form class="box" id="password-form">
+                <h2 class="title is-5">Змінити пароль</h2>
+                <div class="field">
+                  <label class="label" for="current-password-input">Поточний пароль</label>
+                  <div class="control">
+                    <input
+                      class="input"
+                      id="current-password-input"
+                      type="password"
+                      name="currentPassword"
+                      autocomplete="current-password"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="label" for="new-password-input">Новий пароль</label>
+                  <div class="control">
+                    <input
+                      class="input"
+                      id="new-password-input"
+                      type="password"
+                      name="newPassword"
+                      autocomplete="new-password"
+                      minlength="6"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="label" for="confirm-password-input">Підтвердження нового пароля</label>
+                  <div class="control">
+                    <input
+                      class="input"
+                      id="confirm-password-input"
+                      type="password"
+                      name="confirmPassword"
+                      autocomplete="new-password"
+                      minlength="6"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="field is-grouped is-justify-content-flex-end">
+                  <div class="control">
+                    <button class="button is-link" type="submit">Оновити пароль</button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="box settings-danger-zone">
+                <h2 class="title is-5 has-text-danger">Видалення акаунту</h2>
+                <p class="mb-4">
+                  Видалення акаунту є незворотнім. Усі ваші дані будуть стерті.
+                </p>
+                <button
+                  class="button is-danger"
+                  type="button"
+                  id="delete-account-button"
+                >
+                  Видалити акаунт
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="modal" id="delete-account-modal" aria-hidden="true">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Підтвердіть видалення</p>
+          <button
+            class="delete"
+            aria-label="Закрити"
+            type="button"
+            id="close-delete-modal"
+          ></button>
+        </header>
+        <section class="modal-card-body">
+          <p>
+            Ви впевнені, що хочете видалити свій акаунт? Цю дію не можна буде
+            скасувати.
+          </p>
+        </section>
+        <footer class="modal-card-foot is-justify-content-flex-end">
+          <button class="button" type="button" id="cancel-delete-button">
+            Скасувати
+          </button>
+          <button
+            class="button is-danger"
+            type="button"
+            id="confirm-delete-button"
+          >
+            Видалити
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <script type="module" src="./scripts/settings.js"></script>
+  </body>
+</html>
