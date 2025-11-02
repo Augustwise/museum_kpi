@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="uk">
   <head>
     <meta charset="UTF-8" />
@@ -40,26 +40,16 @@
               <div class="content">
                 <h2 class="title is-4">Доступні виставки</h2>
                 <p class="subtitle is-6">
-                  Перегляньте актуальні виставки та оберіть ту, що вас зацікавила.
+                  Перегляньте актуальні виставки та оберіть ту, що вас
+                  зацікавила.
                 </p>
               </div>
-              <div class="table-container">
-                <table
-                  class="table is-fullwidth is-striped is-hoverable"
-                  id="exhibitions-table"
-                >
-                  <thead>
-                    <tr>
-                      <th scope="col">Зображення</th>
-                      <th scope="col">Назва</th>
-                      <th scope="col">Період</th>
-                      <th scope="col">Вільні місця</th>
-                      <th scope="col">Адміністратор</th>
-                    </tr>
-                  </thead>
-                  <tbody id="exhibitions-table-body"></tbody>
-                </table>
-              </div>
+              <div
+                id="exhibitions-grid"
+                class="exhibitions-grid"
+                role="list"
+                aria-describedby="user-email"
+              ></div>
               <div
                 class="notification is-light is-info mt-4"
                 id="exhibitions-message"
@@ -69,7 +59,11 @@
             </section>
 
             <div class="mt-5">
-              <button class="button is-link is-fullwidth" id="logout-button" type="button">
+              <button
+                class="button is-link is-fullwidth"
+                id="logout-button"
+                type="button"
+              >
                 Вийти
               </button>
             </div>
@@ -77,7 +71,7 @@
         </div>
       </div>
     </section>
-  
+
     <script src="https://unpkg.com/basiclightbox@5/dist/basicLightbox.min.js"></script>
     <script type="module" src="./scripts/exhibitions.js"></script>
   </body>

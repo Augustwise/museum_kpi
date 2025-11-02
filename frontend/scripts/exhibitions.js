@@ -1,8 +1,8 @@
-const profileTableBody = document.getElementById('profile-table-body');
-const emailElement = document.getElementById('user-email');
-const logoutButton = document.getElementById('logout-button');
-const exhibitionsTableBody = document.getElementById('exhibitions-table-body');
-const exhibitionsMessage = document.getElementById('exhibitions-message');
+const profileTableBody = document.getElementById("profile-table-body");
+const emailElement = document.getElementById("user-email");
+const logoutButton = document.getElementById("logout-button");
+const exhibitionsGrid = document.getElementById("exhibitions-grid");
+const exhibitionsMessage = document.getElementById("exhibitions-message");
 
 function setExhibitionsMessage(text, options = {}) {
   if (!exhibitionsMessage) {
@@ -11,25 +11,25 @@ function setExhibitionsMessage(text, options = {}) {
 
   const { isError = false } = options;
 
-  exhibitionsMessage.textContent = text || '';
+  exhibitionsMessage.textContent = text || "";
   exhibitionsMessage.hidden = !text;
 
-  exhibitionsMessage.classList.toggle('is-danger', Boolean(isError));
-  exhibitionsMessage.classList.toggle('is-info', !isError);
+  exhibitionsMessage.classList.toggle("is-danger", Boolean(isError));
+  exhibitionsMessage.classList.toggle("is-info", !isError);
 }
 
 function formatDate(value) {
   if (!value) {
-    return '';
+    return "";
   }
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return '';
+    return "";
   }
 
-  return date.toLocaleDateString('uk-UA');
+  return date.toLocaleDateString("uk-UA");
 }
 
 function formatPeriod(startDate, endDate) {
@@ -44,7 +44,7 @@ function formatPeriod(startDate, endDate) {
     return `${start} — ${end}`;
   }
 
-  return start || end || '—';
+  return start || end || "—";
 }
 
 function openExhibitionImage({ imageUrl, name }) {
@@ -54,85 +54,104 @@ function openExhibitionImage({ imageUrl, name }) {
 
   const { basicLightbox } = window;
 
-  if (!basicLightbox || typeof basicLightbox.create !== 'function') {
+  if (!basicLightbox || typeof basicLightbox.create !== "function") {
     return;
   }
 
-  const lightboxImage = document.createElement('img');
+  const lightboxImage = document.createElement("img");
   lightboxImage.src = imageUrl;
-  lightboxImage.alt = `Зображення виставки ${name || 'без назви'}`;
-  lightboxImage.className = 'exhibitions-lightbox__image';
+  lightboxImage.alt = `Зображення виставки ${name || "без назви"}`;
+  lightboxImage.className = "exhibitions-lightbox__image";
 
   const instance = basicLightbox.create(lightboxImage.outerHTML);
   instance.show();
 }
 
 function renderExhibitions(exhibitions) {
-  if (!exhibitionsTableBody) {
+  if (!exhibitionsGrid) {
     return;
   }
 
-  exhibitionsTableBody.innerHTML = '';
+  exhibitionsGrid.innerHTML = "";
 
   if (!Array.isArray(exhibitions) || exhibitions.length === 0) {
-    setExhibitionsMessage('Наразі немає доступних виставок.');
+    setExhibitionsMessage("Наразі немає доступних виставок.");
     return;
   }
 
   exhibitions.forEach((exhibition) => {
-    const row = document.createElement('tr');
+    const card = document.createElement("article");
+    card.className = "exhibition-card";
+    card.setAttribute("role", "listitem");
 
-    const imageCell = document.createElement('td');
+    // Image section
+    const imageWrapper = document.createElement("div");
+    imageWrapper.className = "exhibition-card__image-wrapper";
 
     if (exhibition.imageUrl) {
-      const imageButton = document.createElement('button');
-      imageButton.type = 'button';
-      imageButton.className = 'button is-white is-small exhibitions-table__image-button';
+      const imageButton = document.createElement("button");
+      imageButton.type = "button";
+      imageButton.className = "exhibition-card__image-button";
 
-      const image = document.createElement('img');
+      const image = document.createElement("img");
       image.src = exhibition.imageUrl;
-      image.alt = `Зображення виставки ${exhibition.name || 'без назви'}`;
-      image.loading = 'lazy';
-      image.className = 'exhibitions-table__image';
+      image.alt = `Зображення виставки ${exhibition.name || "без назви"}`;
+      image.loading = "lazy";
+      image.className = "exhibition-card__image";
 
       imageButton.appendChild(image);
-      imageButton.addEventListener('click', () =>
+      imageButton.addEventListener("click", () =>
         openExhibitionImage({
           imageUrl: exhibition.imageUrl,
           name: exhibition.name,
         })
       );
 
-      imageCell.appendChild(imageButton);
+      imageWrapper.appendChild(imageButton);
     } else {
-      imageCell.textContent = '—';
+      const placeholder = document.createElement("div");
+      placeholder.className = "exhibition-card__image-placeholder";
+      placeholder.setAttribute("aria-hidden", "true");
+      imageWrapper.appendChild(placeholder);
     }
 
-    row.appendChild(imageCell);
+    // Content section
+    const content = document.createElement("div");
+    content.className = "exhibition-card__content";
 
-    const nameCell = document.createElement('td');
-    nameCell.textContent = exhibition.name || 'Без назви';
-    row.appendChild(nameCell);
+    const title = document.createElement("h3");
+    title.className = "exhibition-card__title";
+    title.textContent = exhibition.name || "Без назви";
 
-    const periodCell = document.createElement('td');
-    periodCell.textContent = formatPeriod(
+    const period = document.createElement("p");
+    period.className = "exhibition-card__period";
+    period.textContent = `Період: ${formatPeriod(
       exhibition.startDate,
       exhibition.endDate
-    );
-    row.appendChild(periodCell);
+    )}`;
 
-    const seatsCell = document.createElement('td');
-    seatsCell.textContent = String(exhibition.availableSeats ?? '—');
-    row.appendChild(seatsCell);
+    const seats = document.createElement("p");
+    seats.className = "exhibition-card__seats";
+    seats.textContent = `Вільних місць: ${String(
+      exhibition.availableSeats ?? "—"
+    )}`;
 
-    const adminCell = document.createElement('td');
-    adminCell.textContent = exhibition.adminName || '—';
-    row.appendChild(adminCell);
+    const admin = document.createElement("p");
+    admin.className = "exhibition-card__admin";
+    admin.textContent = `Адміністратор: ${exhibition.adminName || "—"}`;
 
-    exhibitionsTableBody.appendChild(row);
+    content.appendChild(title);
+    content.appendChild(period);
+    content.appendChild(seats);
+    content.appendChild(admin);
+
+    card.appendChild(imageWrapper);
+    card.appendChild(content);
+
+    exhibitionsGrid.appendChild(card);
   });
 
-  setExhibitionsMessage('');
+  setExhibitionsMessage("");
 }
 
 function renderUserDetails(user) {
@@ -141,24 +160,24 @@ function renderUserDetails(user) {
   }
 
   const rows = [
-    { label: "Ім'я", value: user.firstName || '-' },
-    { label: 'Прізвище', value: user.lastName || '-' },
-    { label: 'Дата народження', value: user.birthDate || '-' },
-    { label: 'Стать', value: user.gender || '-' },
-    { label: 'Телефон', value: user.phone || '-' },
+    { label: "Ім'я", value: user.firstName || "-" },
+    { label: "Прізвище", value: user.lastName || "-" },
+    { label: "Дата народження", value: user.birthDate || "-" },
+    { label: "Стать", value: user.gender || "-" },
+    { label: "Телефон", value: user.phone || "-" },
   ];
 
-  profileTableBody.innerHTML = '';
+  profileTableBody.innerHTML = "";
 
   rows.forEach((row) => {
-    const tr = document.createElement('tr');
-    const tdLabel = document.createElement('td');
+    const tr = document.createElement("tr");
+    const tdLabel = document.createElement("td");
     tdLabel.textContent = row.label;
-    tdLabel.className = 'has-text-weight-semibold has-text-dark';
+    tdLabel.className = "has-text-weight-semibold has-text-dark";
 
-    const tdValue = document.createElement('td');
+    const tdValue = document.createElement("td");
     tdValue.textContent = row.value;
-    tdValue.className = 'has-text-grey-darker';
+    tdValue.className = "has-text-grey-darker";
 
     tr.appendChild(tdLabel);
     tr.appendChild(tdValue);
@@ -167,26 +186,26 @@ function renderUserDetails(user) {
 }
 
 async function loadExhibitions() {
-  if (!exhibitionsTableBody) {
+  if (!exhibitionsGrid) {
     return;
   }
 
-  exhibitionsTableBody.innerHTML = '';
-  setExhibitionsMessage('Завантаження виставок...');
+  exhibitionsGrid.innerHTML = "";
+  setExhibitionsMessage("Завантаження виставок...");
 
   try {
-    const response = await fetch('/api/exhibitions');
+    const response = await fetch("/api/exhibitions");
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const error = payload.error || 'Не вдалося отримати список виставок.';
+      const error = payload.error || "Не вдалося отримати список виставок.";
       throw new Error(error);
     }
 
     renderExhibitions(payload.exhibitions || []);
   } catch (error) {
     setExhibitionsMessage(
-      error?.message || 'Не вдалося отримати список виставок.',
+      error?.message || "Не вдалося отримати список виставок.",
       {
         isError: true,
       }
@@ -195,10 +214,10 @@ async function loadExhibitions() {
 }
 
 function init() {
-  const storedUser = localStorage.getItem('museumUser');
+  const storedUser = localStorage.getItem("museumUser");
 
   if (!storedUser) {
-    window.location.href = './login.html';
+    window.location.href = "./login.html";
     return;
   }
 
@@ -206,14 +225,14 @@ function init() {
   try {
     user = JSON.parse(storedUser);
   } catch (error) {
-    console.error('Unable to parse user data', error);
-    localStorage.removeItem('museumUser');
-    window.location.href = './login.html';
+    console.error("Unable to parse user data", error);
+    localStorage.removeItem("museumUser");
+    window.location.href = "./login.html";
     return;
   }
 
   if (emailElement) {
-    emailElement.textContent = user.email || '';
+    emailElement.textContent = user.email || "";
   }
 
   renderUserDetails(user);
@@ -221,9 +240,9 @@ function init() {
 }
 
 if (logoutButton) {
-  logoutButton.addEventListener('click', () => {
-    localStorage.removeItem('museumUser');
-    window.location.href = './login.html';
+  logoutButton.addEventListener("click", () => {
+    localStorage.removeItem("museumUser");
+    window.location.href = "./login.html";
   });
 }
 
