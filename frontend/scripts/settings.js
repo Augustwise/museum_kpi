@@ -17,6 +17,8 @@ const confirmDeleteButton = document.getElementById("confirm-delete-button");
 
 let currentUser = null;
 
+const PHONE_REGEX = /^\+380\d{9}$/;
+
 function showMessage(text, options = {}) {
   if (!messageElement) {
     return;
@@ -240,9 +242,19 @@ if (phoneForm) {
     event.preventDefault();
 
     const rawPhone = (phoneInput?.value || "").trim();
-    const payload = { phone: rawPhone || null };
+    const normalizedPhone = rawPhone.replace(/\s+/g, "");
 
-    if (currentUser && (currentUser.phone || "") === rawPhone) {
+    if (normalizedPhone && !PHONE_REGEX.test(normalizedPhone)) {
+      showMessage("Номер телефону має бути у форматі +380XXXXXXXXX.", {
+        isError: true,
+      });
+      return;
+    }
+
+    const payload = { phone: normalizedPhone || null };
+    const currentNormalizedPhone = (currentUser?.phone || "").replace(/\s+/g, "");
+
+    if (normalizedPhone === currentNormalizedPhone) {
       showMessage("Номер телефону не змінився.", { isError: true });
       return;
     }

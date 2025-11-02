@@ -75,6 +75,8 @@ async function findAdminById(adminId) {
   return rows[0] || null;
 }
 
+const PHONE_REGEX = /^\+380\d{9}$/;
+
 function normalizePhone(phone) {
   if (typeof phone !== 'string') {
     return null;
@@ -82,6 +84,14 @@ function normalizePhone(phone) {
 
   const cleaned = phone.replace(/\s+/g, '');
   return cleaned.length ? cleaned : null;
+}
+
+function isValidPhone(phone) {
+  if (typeof phone !== 'string') {
+    return false;
+  }
+
+  return PHONE_REGEX.test(phone);
 }
 
 app.post('/api/register', async (req, res) => {
@@ -114,6 +124,12 @@ app.post('/api/register', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const normalizedPhone = normalizePhone(phone);
+
+    if (normalizedPhone && !isValidPhone(normalizedPhone)) {
+      return res
+        .status(400)
+        .json({ error: 'Номер телефону має бути у форматі +380XXXXXXXXX.' });
+    }
 
     const [result] = await pool.execute(
       `INSERT INTO Users (first_name, last_name, birth_date, gender, email, phone, password)
@@ -269,6 +285,12 @@ app.put('/api/users/:id', async (req, res) => {
         normalizedPhone = null;
       } else if (typeof phone === 'string') {
         normalizedPhone = normalizePhone(phone);
+
+        if (normalizedPhone && !isValidPhone(normalizedPhone)) {
+          return res
+            .status(400)
+            .json({ error: 'Номер телефону має бути у форматі +380XXXXXXXXX.' });
+        }
       } else {
         return res.status(400).json({ error: 'Некоректний номер телефону.' });
       }
