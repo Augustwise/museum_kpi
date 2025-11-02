@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="uk">
   <head>
     <meta charset="UTF-8" />
@@ -8,19 +8,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Montserrat:wght@500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
         color-scheme: light;
-        font-family: 'IBM Plex Sans', 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: "IBM Plex Sans", "Montserrat", system-ui, -apple-system,
+          BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       body {
         margin: 0;
         background-color: #f5f5f5;
         color: #1d1f22;
+        font-family: inherit;
       }
 
       header {
@@ -45,6 +47,7 @@
         background-color: #fff;
         color: #1d1f22;
         font-weight: 600;
+        font-family: inherit;
       }
 
       main {
@@ -93,7 +96,7 @@
         font-family: inherit;
       }
 
-      button[type='submit'],
+      button[type="submit"],
       .table-button {
         background-color: #1d1f22;
         color: #fff;
@@ -102,19 +105,25 @@
         border-radius: 6px;
         cursor: pointer;
         font-weight: 600;
+        font-family: inherit;
         transition: opacity 0.2s ease;
       }
 
-      button[type='submit']:hover,
+      button[type="submit"]:hover,
       .table-button:hover,
       header button:hover,
       .secondary-button:hover {
         opacity: 0.85;
       }
 
+      button {
+        font-family: inherit;
+      }
+
       .secondary-button {
         background-color: #e0e3e7;
         color: #1d1f22;
+        font-family: inherit;
       }
 
       .input-error {
@@ -217,11 +226,23 @@
         <form id="adminLoginForm">
           <label>
             Електронна пошта
-            <input type="email" id="adminEmail" name="email" required autocomplete="email" />
+            <input
+              type="email"
+              id="adminEmail"
+              name="email"
+              required
+              autocomplete="email"
+            />
           </label>
           <label>
             Пароль
-            <input type="password" id="adminPassword" name="password" required autocomplete="current-password" />
+            <input
+              type="password"
+              id="adminPassword"
+              name="password"
+              required
+              autocomplete="current-password"
+            />
           </label>
           <button type="submit">Увійти</button>
         </form>
@@ -241,7 +262,9 @@
                 required
                 @blur="markTouched('name')"
               />
-              <p v-if="nameErrorVisible" class="field-error">{{ errors.name }}</p>
+              <p v-if="nameErrorVisible" class="field-error">
+                {{ errors.name }}
+              </p>
             </label>
             <label>
               Посилання на зображення (опційно)
@@ -253,7 +276,9 @@
                 placeholder="https://"
                 @blur="markTouched('imageUrl')"
               />
-              <p v-if="imageErrorVisible" class="field-error">{{ errors.imageUrl }}</p>
+              <p v-if="imageErrorVisible" class="field-error">
+                {{ errors.imageUrl }}
+              </p>
             </label>
             <label>
               Дата початку
@@ -265,7 +290,9 @@
                 required
                 @blur="markTouched('startDate')"
               />
-              <p v-if="startDateErrorVisible" class="field-error">{{ errors.startDate }}</p>
+              <p v-if="startDateErrorVisible" class="field-error">
+                {{ errors.startDate }}
+              </p>
             </label>
             <label>
               Дата завершення
@@ -277,7 +304,9 @@
                 required
                 @blur="markTouched('endDate')"
               />
-              <p v-if="endDateErrorVisible" class="field-error">{{ errors.endDate }}</p>
+              <p v-if="endDateErrorVisible" class="field-error">
+                {{ errors.endDate }}
+              </p>
             </label>
             <label>
               Доступні місця
@@ -291,10 +320,14 @@
                 required
                 @blur="markTouched('availableSeats')"
               />
-              <p v-if="seatsErrorVisible" class="field-error">{{ errors.availableSeats }}</p>
+              <p v-if="seatsErrorVisible" class="field-error">
+                {{ errors.availableSeats }}
+              </p>
             </label>
             <div class="form-actions">
-              <button type="submit" :disabled="isSubmitting">{{ submitLabel }}</button>
+              <button type="submit" :disabled="isSubmitting">
+                {{ submitLabel }}
+              </button>
               <button
                 type="button"
                 id="resetFormButton"
