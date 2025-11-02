@@ -14,11 +14,8 @@ function setExhibitionsMessage(text, options = {}) {
   exhibitionsMessage.textContent = text || '';
   exhibitionsMessage.hidden = !text;
 
-  if (isError) {
-    exhibitionsMessage.classList.add('exhibitions-message--error');
-  } else {
-    exhibitionsMessage.classList.remove('exhibitions-message--error');
-  }
+  exhibitionsMessage.classList.toggle('is-danger', Boolean(isError));
+  exhibitionsMessage.classList.toggle('is-info', !isError);
 }
 
 function formatDate(value) {
@@ -90,7 +87,7 @@ function renderExhibitions(exhibitions) {
     if (exhibition.imageUrl) {
       const imageButton = document.createElement('button');
       imageButton.type = 'button';
-      imageButton.className = 'exhibitions-table__image-button';
+      imageButton.className = 'button is-white is-small exhibitions-table__image-button';
 
       const image = document.createElement('img');
       image.src = exhibition.imageUrl;
@@ -157,11 +154,11 @@ function renderUserDetails(user) {
     const tr = document.createElement('tr');
     const tdLabel = document.createElement('td');
     tdLabel.textContent = row.label;
-    tdLabel.className = 'profile-table__label';
+    tdLabel.className = 'has-text-weight-semibold has-text-dark';
 
     const tdValue = document.createElement('td');
     tdValue.textContent = row.value;
-    tdValue.className = 'profile-table__value';
+    tdValue.className = 'has-text-grey-darker';
 
     tr.appendChild(tdLabel);
     tr.appendChild(tdValue);

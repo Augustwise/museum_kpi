@@ -439,22 +439,25 @@ function renderTable(exhibitions) {
 
     const actionsCell = document.createElement('td');
     actionsCell.dataset.label = 'Дії';
-    actionsCell.className = 'table-actions';
+
+    const actionsWrapper = document.createElement('div');
+    actionsWrapper.className = 'buttons are-small';
 
     const editButton = document.createElement('button');
     editButton.type = 'button';
-    editButton.className = 'table-button';
+    editButton.className = 'button is-info is-light';
     editButton.textContent = 'Редагувати';
     editButton.addEventListener('click', () => openExhibitionEditor(exhibition));
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
-    deleteButton.className = 'table-button delete';
+    deleteButton.className = 'button is-danger is-light';
     deleteButton.textContent = 'Видалити';
     deleteButton.addEventListener('click', () => handleDelete(exhibition.id));
 
-    actionsCell.appendChild(editButton);
-    actionsCell.appendChild(deleteButton);
+    actionsWrapper.appendChild(editButton);
+    actionsWrapper.appendChild(deleteButton);
+    actionsCell.appendChild(actionsWrapper);
     row.appendChild(actionsCell);
 
     tbody.appendChild(row);
@@ -535,15 +538,15 @@ function toggleVisibility(isAuthorized) {
   const logoutButton = document.getElementById('logoutButton');
 
   if (isAuthorized) {
-    loginSection.classList.add('hidden');
-    managementSection.classList.remove('hidden');
-    scheduleSection.classList.remove('hidden');
-    logoutButton.classList.remove('hidden');
+    loginSection.classList.add('is-hidden');
+    managementSection.classList.remove('is-hidden');
+    scheduleSection.classList.remove('is-hidden');
+    logoutButton.classList.remove('is-hidden');
   } else {
-    loginSection.classList.remove('hidden');
-    managementSection.classList.add('hidden');
-    scheduleSection.classList.add('hidden');
-    logoutButton.classList.add('hidden');
+    loginSection.classList.remove('is-hidden');
+    managementSection.classList.add('is-hidden');
+    scheduleSection.classList.add('is-hidden');
+    logoutButton.classList.add('is-hidden');
   }
 }
 
