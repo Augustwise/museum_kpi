@@ -51,6 +51,8 @@ function mapExhibition(dbRow) {
   return exhibition;
 }
 
+// Date valid if it is a valid date object or a string that can be parsed into a date object.
+// for example: 2025-11-22 -> true, '2025-11-22' -> true, new Date() -> true, 'invalid' -> false
 function isValidDate(value) {
   if (!value) {
     return false;

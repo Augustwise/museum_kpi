@@ -2,6 +2,7 @@ const ADMIN_KEY = 'museumAdmin';
 
 let exhibitionFormController = null;
 
+// Reads the admin data from localStorage. Returns the parsed object or null if not present or on error.
 function readAdmin() {
   try {
     const raw = localStorage.getItem(ADMIN_KEY);
@@ -12,6 +13,7 @@ function readAdmin() {
   }
 }
 
+// Saves the admin data to localStorage as a JSON string. Removes the item if admin is falsy.
 function saveAdmin(admin) {
   if (!admin) {
     localStorage.removeItem(ADMIN_KEY);
@@ -21,6 +23,7 @@ function saveAdmin(admin) {
   localStorage.setItem(ADMIN_KEY, JSON.stringify(admin));
 }
 
+// for example: 2025-11-22 -> 2025.11.22
 function formatDatePart(value) {
   if (!value) {
     return '';
@@ -43,6 +46,7 @@ function formatDatePart(value) {
 function formatDateRange(startDate, endDate) {
   return `${formatDatePart(startDate)} — ${formatDatePart(endDate)}`;
 }
+
 
 function initExhibitionFormApp() {
   if (!window.Vue) {
@@ -392,6 +396,8 @@ function initExhibitionFormApp() {
   return app.mount('#exhibitionApp');
 }
 
+
+// Renders the table of exhibitions.
 function renderTable(exhibitions) {
   const tbody = document.getElementById('exhibitionsTableBody');
 
@@ -411,6 +417,7 @@ function renderTable(exhibitions) {
     return;
   }
 
+  // Render each exhibition in the table. Each exhibition is a row in the table.
   exhibitions.forEach((exhibition) => {
     const row = document.createElement('tr');
 
@@ -482,6 +489,7 @@ async function fetchExhibitions() {
   return payload.exhibitions || [];
 }
 
+// Opens the exhibition editor form with the given exhibition data. (Sets the form data)
 function openExhibitionEditor(exhibition) {
   exhibitionFormController?.setFormData(exhibition);
 }

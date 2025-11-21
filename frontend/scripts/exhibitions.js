@@ -18,6 +18,7 @@ function setExhibitionsMessage(text, options = {}) {
   exhibitionsMessage.classList.toggle("is-info", !isError);
 }
 
+// Formats the date to the format: 2025.11.22
 function formatDate(value) {
   if (!value) {
     return "";
